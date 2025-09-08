@@ -1,0 +1,67 @@
+{
+  "appId": "123f1f28-e16c-450f-8831-7d97b879b199",
+  "appDisplayName": "Parking",
+  "description": null,
+  "environmentId": "073586d4-ab53-ef3f-9742-6d06e4cbb301",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "logoPath": "Default",
+  "localAppUrl": "http://localhost:3000/",
+  "connectionReferences": {
+    "b6a0c121-8d58-4d3e-9b77-1e730080190b": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+      "displayName": "SharePoint",
+      "dataSources": [
+        "colaboradores fijos",
+        "parkingslots",
+        "reservations",
+        "settings",
+        "usuarios"
+      ],
+      "authenticationType": null,
+      "sharedConnectionId": null,
+      "dataSets": {
+        "https%253A%252F%252Festudiodemoda.sharepoint.com%252Fsites%252FTransformacionDigital%252FIN%252FTest": {
+          "dataSources": {
+            "colaboradores fijos": {
+              "tableName": "bea6de47-4399-4208-a1fe-783a0799d00d"
+            },
+            "parkingslots": {
+              "tableName": "af4bb332-59f0-4fc0-b714-f37ae1368575"
+            },
+            "reservations": {
+              "tableName": "0c842327-497e-460f-8b4b-a89a108640c1"
+            },
+            "settings": {
+              "tableName": "aba215d0-3a44-4d6b-8bd5-1672b06b28ed"
+            },
+            "usuarios": {
+              "tableName": "d36d18f8-a0b6-4b2a-80ba-c8f619b78b26"
+            }
+          }
+        }
+      }
+    },
+    "73a7b578-aa4b-46d7-a4a5-e52cd805ce73": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+      "displayName": "Office 365 Users",
+      "dataSources": [
+        "office365users"
+      ],
+      "authenticationType": null,
+      "sharedConnectionId": null,
+      "dataSets": {}
+    },
+    "383e5250-5778-46b4-8f46-fa625452c000": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_teams",
+      "displayName": "Microsoft Teams",
+      "dataSources": [
+        "teams"
+      ],
+      "authenticationType": null,
+      "sharedConnectionId": null,
+      "dataSets": {}
+    }
+  },
+  "databaseReferences": {}
+}
