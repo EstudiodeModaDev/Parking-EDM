@@ -1,10 +1,16 @@
 import * as React from 'react';
 import styles from './AdminSettings.module.css';
 import type { SettingsPort, SettingsForm, SettingsRecord } from '../../adapters/settings';
+import PicoPlacaAdmin from '../PicoPlaca/PicoPlaca'; // ← sin espacios en la ruta
 
-const DEFAULTS: SettingsForm = { VisibleDays: 3, MaxAdvanceHours: 72, MaxUserTurns: 3 };
+const DEFAULTS: SettingsForm = { VisibleDays: 3, TyC: "" };
+
+// Clamp genérico para números
 const clamp = (v: number, min: number, max: number) =>
   Math.max(min, Math.min(max, Number.isFinite(v) ? v : min));
+
+// Normaliza a string primitiva
+const s = (v: unknown) => (typeof v === 'string' ? v : v == null ? '' : String(v));
 
 type Props = {
   port: SettingsPort;
@@ -12,64 +18,64 @@ type Props = {
 };
 
 const AdminSettings: React.FC<Props> = ({ port, initial }) => {
+  // Estado del formulario
   const [form, setForm] = React.useState<SettingsForm>({
     VisibleDays: initial?.VisibleDays ?? DEFAULTS.VisibleDays,
-    MaxAdvanceHours: initial?.MaxAdvanceHours ?? DEFAULTS.MaxAdvanceHours,
-    MaxUserTurns: initial?.MaxUserTurns ?? DEFAULTS.MaxUserTurns,
+    TyC: s(initial?.TyC ?? DEFAULTS.TyC),
   });
 
+  // Estado base (lo que viene de backend)
   const [base, setBase] = React.useState<SettingsRecord | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(!initial);
+
+  // UI states
+  const [loading, setLoading] = React.useState<boolean>(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
 
+  // Evita que el useEffect pise el formulario múltiples veces
+  const loadedRef = React.useRef(false);
+
+  // Cargar una sola vez desde el puerto
   React.useEffect(() => {
+    if (loadedRef.current) return; // ya cargado
     let cancelled = false;
+
     (async () => {
       try {
         const rec = await port.getOne();
         if (cancelled) return;
+
         setBase(rec);
-        setForm({
-          VisibleDays: rec.VisibleDays ?? DEFAULTS.VisibleDays,
-          MaxAdvanceHours: rec.MaxAdvanceHours ?? DEFAULTS.MaxAdvanceHours,
-          MaxUserTurns: rec.MaxUserTurns ?? DEFAULTS.MaxUserTurns,
-        });
+        setForm(prev => ({
+          VisibleDays: rec.VisibleDays ?? (prev.VisibleDays ?? DEFAULTS.VisibleDays),
+          TyC: prev.TyC && prev.TyC !== DEFAULTS.TyC ? prev.TyC : s(rec.TyC ?? DEFAULTS.TyC),
+        }));
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? 'No se pudieron cargar los ajustes.');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          loadedRef.current = true;
+          setLoading(false);
+        }
       }
     })();
-    return () => { cancelled = true; };
-  }, [port]);
 
+    return () => { cancelled = true; };
+  }, []); // ← sin deps: carga una sola vez
+
+  // Validaciones
   const errors = React.useMemo(() => {
     const e: Partial<Record<keyof SettingsForm, string>> = {};
-    const cap = (form.VisibleDays || 0) * 24;
-
     if (form.VisibleDays < 1) e.VisibleDays = 'Debe ser ≥ 1 día.';
-    if (form.MaxAdvanceHours < 1) e.MaxAdvanceHours = 'Debe ser ≥ 1 hora.';
-    else if (form.MaxAdvanceHours > cap) e.MaxAdvanceHours = `No debe exceder ${cap} horas (${form.VisibleDays}×24).`;
-
-    if (form.MaxUserTurns < 1) e.MaxUserTurns = 'Debe ser ≥ 1 turno.';
-    else if (form.MaxUserTurns > 6) e.MaxUserTurns = 'Máximo recomendado: 6 turnos.';
-
+    // Si quieres obligar TyC, descomenta:
+    // if (!form.TyC.trim()) e.TyC = 'Los términos no pueden estar vacíos.';
     return e;
   }, [form]);
 
   const hasErrors = Object.keys(errors).length > 0;
 
-  const dirty = React.useMemo(() => {
-    if (!base) return false;
-    return (
-      form.VisibleDays !== base.VisibleDays ||
-      form.MaxAdvanceHours !== base.MaxAdvanceHours ||
-      form.MaxUserTurns !== base.MaxUserTurns
-    );
-  }, [form, base]);
-
+  // Handlers
   const onChangeNumber =
     (key: keyof SettingsForm, min: number, max: number) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,24 +85,39 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
       setError(null);
     };
 
-  const restoreDefaults = () => {
-    setForm(DEFAULTS);
-    setOkMsg(null);
-    setError(null);
-  };
+  const onChangeText =
+    (key: 'TyC') =>
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const v = e.target.value ?? '';
+      setForm(f => ({ ...f, [key]: v }));
+      setOkMsg(null);
+      setError(null);
+    };
 
+  // Guardar solo cambios
   const save = async () => {
-    if (!base || hasErrors || !dirty) return;
+    if (!base || hasErrors) return;
     setSaving(true);
     setError(null);
     setOkMsg(null);
+
     try {
+      const prev: Partial<SettingsForm> = {
+        VisibleDays: base.VisibleDays ?? DEFAULTS.VisibleDays,
+        TyC: s(base.TyC ?? DEFAULTS.TyC),
+      };
+
       const changes: Partial<SettingsForm> = {};
-      (['VisibleDays', 'MaxAdvanceHours', 'MaxUserTurns'] as const).forEach(k => {
-        if (form[k] !== base[k]) changes[k] = form[k];
-      });
+      if (form.VisibleDays !== prev.VisibleDays) changes.VisibleDays = form.VisibleDays;
+      if (form.TyC !== prev.TyC) changes.TyC = form.TyC;
+
+      if (Object.keys(changes).length === 0) {
+        setOkMsg('No hay cambios por guardar.');
+        return;
+      }
+
       await port.update(base.ID, changes);
-      setBase({ ...base, ...form });
+      setBase({ ...base, ...changes });
       setOkMsg('Ajustes guardados correctamente.');
     } catch (e: any) {
       console.error(e);
@@ -108,12 +129,13 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
 
   if (loading) return <div>Cargando ajustes…</div>;
 
-
   return (
     <div className={styles.wrapper}>
+      {/* Card de parámetros de reservas */}
       <div className={styles.card}>
         <h2 className={styles.title}>Parámetros de Reservas</h2>
 
+        {/* VisibleDays */}
         <div className={styles.form}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="VisibleDays">Días máximos visibles</label>
@@ -126,23 +148,45 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
               value={form.VisibleDays}
               onChange={onChangeNumber('VisibleDays', 1, 60)}
             />
-            <small className={styles.hint}>Cuántos días hacia adelante se muestran en “Disponibilidad”.</small>
+            <small className={styles.hint}>
+              Cuántos días hacia adelante se muestran en “Disponibilidad”.
+            </small>
             {errors.VisibleDays && <div className={styles.error}>{errors.VisibleDays}</div>}
           </div>
         </div>
 
+        {/* TyC */}
+        <div className={styles.form}>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="TyC">Términos y condiciones</label>
+            <textarea
+              id="TyC"
+              className={styles.textarea}
+              value={form.TyC}
+              onChange={onChangeText('TyC')}
+              rows={12}
+              placeholder="Escribe los términos y condiciones…"
+            />
+            <small className={styles.hint}>
+              Términos y condiciones del parqueadero de Estudio de Moda.
+            </small>
+          </div>
+        </div>
 
         {error && <div className={styles.error}>{error}</div>}
         {okMsg && <div className={styles.ok}>{okMsg}</div>}
 
         <div className={styles.actions}>
-          <button className={styles.button} onClick={save} disabled={saving || hasErrors || !dirty}>
+          <button className={styles.button} onClick={save} disabled={saving || hasErrors}>
             {saving ? 'Guardando…' : 'Guardar'}
           </button>
-          <button className={styles.buttonGhost} type="button" onClick={restoreDefaults} disabled={saving} title="Restaurar 7 / 72 / 3">
-            Restaurar por defecto
-          </button>
         </div>
+      </div>
+
+      {/* Card de Pico y Placa */}
+      <div className={styles.card}>
+        <h2 className={styles.title}>Pico y Placa</h2>
+        <PicoPlacaAdmin />
       </div>
     </div>
   );

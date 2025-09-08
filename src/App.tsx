@@ -1,12 +1,18 @@
-// App.tsx
+//Import Generales
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 
+//Imports tipos
+//import type { IGetAllOptions } from './Models/CommonModels';
+
+//Imports services
 import { Office365UsersService } from './Services/Office365UsersService';
 import { SharedServices } from './Services/sharedService';
-
 import { makeSettingsPortSingle } from './adapters/settings';
+//import { UsuariosService } from './Services/UsuariosService';
 
+
+//Imports de componentes
 import Availability from './components/Reservar/Reservar';
 import MisReservas from './components/Mis-Reservas/mis-reservas';
 import AdminCells from './components/Admin-Cells/admin-cells';
@@ -14,10 +20,8 @@ import AdminSettings from './components/Admin-Settings/AdminSettings';
 import ColaboradoresInscritos from './components/Colaboradores-Permanentes/Colaboradores';
 import { ToastProvider } from './components/Toast/ToasProvider';
 import Reportes from './components/Reportes/reportes';
-import { UsuariosService } from './Services/UsuariosService';
-import type { IGetAllOptions } from './Models/CommonModels';
 
-
+//Pestañas del nav
 const NAVS = [
   { key: 'misreservas', label: 'Reservas', visible: 'admin' },
   { key: 'celdas', label: 'Celdas', visible: 'admin' },
@@ -28,53 +32,57 @@ const NAVS = [
 
 type NavKey = typeof NAVS[number]['key'];
 
+//Info del usuario
 type User = {
   displayName?: string;
   mail?: string;
   jobTitle?: string;
 } | null;
 
-  export async function changeUser(userEmail: string) {
-    const email = (userEmail ?? '').trim();
-    if (!email) throw new Error('userEmail requerido');
 
-    // Escapar comillas simples para OData
-    const emailSafe = email.replace(/'/g, "''");
+//Cambiar tipo de usuario
+/*export async function changeUser(userEmail: string) {
+  const email = (userEmail ?? '').trim();
+  if (!email) throw new Error('userEmail requerido');
 
-    const opt: IGetAllOptions = {
-      filter: `Title eq '${emailSafe}'`,
-      top: 1 as any,
-    };
+  // Escapar comillas simples para OData
+  const emailSafe = email.replace(/'/g, "''");
 
-    // 1) Buscar usuario
-    const res = await UsuariosService.getAll(opt as any);
-    const rows = (res as any)?.data ?? (res as any)?.value ?? [];
-    const user = Array.isArray(rows) ? rows[0] : null;
-    if (!user) throw new Error(`Usuario no encontrado: ${email}`);
+  const opt: IGetAllOptions = {
+    filter: `Title eq '${emailSafe}'`,
+    top: 1 as any,
+};
 
-    // 2) Tomar ID y rol actual
-    const id = user.ID ?? user.Id ?? user.id;
-    if (id == null) throw new Error('El usuario no tiene ID');
+  // 1) Buscar usuario
+  const res = await UsuariosService.getAll(opt as any);
+  const rows = (res as any)?.data ?? (res as any)?.value ?? [];
+  const user = Array.isArray(rows) ? rows[0] : null;
+  if (!user) throw new Error(`Usuario no encontrado: ${email}`);
 
-    const currentRol = String(user.Rol ?? user.rol ?? '').toLowerCase();
-    const nextRol = currentRol === 'admin' ? 'Usuario' : 'admin';
+  // 2) Tomar ID y rol actual
+  const id = user.ID ?? user.Id ?? user.id;
+  if (id == null) throw new Error('El usuario no tiene ID');
 
-    // 3) Actualizar
-    const upd = await UsuariosService.update(String(id), { Rol: nextRol } as any);
-    const ok = ('ok' in upd) ? upd.ok : (('success' in upd) ? upd.success : true);
+  const currentRol = String(user.Rol ?? user.rol ?? '').toLowerCase();
+  const nextRol = currentRol === 'admin' ? 'Usuario' : 'admin';
 
-    return { ok, id, email, before: currentRol, after: nextRol };
-  }
+  // 3) Actualizar
+  const upd = await UsuariosService.update(String(id), { Rol: nextRol } as any);
+  const ok = ('ok' in upd) ? upd.ok : (('success' in upd) ? upd.success : true);
+
+  return { ok, id, email, before: currentRol, after: nextRol };
+}
+*/
 
 export default function App() {
-  const [selected, setSelected] = useState<NavKey>('celdas');
-  const [user, setUser] = useState<User>(null);
+  const [selected, setSelected] = useState<NavKey>('celdas'); //Default Selected
+  const [user, setUser] = useState<User>(null); //UserINfo
   const [userLoading, setUserLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null); //UserRole
 
   const settingsPort = useMemo(() => makeSettingsPortSingle(), []);
 
-  // Cargar perfil
+  //Cargar perfil
   useEffect(() => {
     let cancel = false;
     setUserLoading(true);
@@ -108,7 +116,7 @@ export default function App() {
     let cancel = false;
     (async () => {
       try {
-        const role = await SharedServices.getRole(mail); // Promise<string|null>
+        const role = await SharedServices.getRole(mail);
         if (!cancel) setUserRole(role);
       } catch (e) {
         console.error(e);
@@ -159,14 +167,6 @@ export default function App() {
                       <div className="errorText">No se pudo cargar el usuario</div>
                     )}
                   </div>
-
-                  <button
-                    className="roleBtn"
-                    onClick={() => changeUser(user?.mail ?? '')}
-                    disabled={!user?.mail}
-                  >
-                    Cambiar de rol
-                  </button>
                 </div>
               </div>
             </div>
@@ -235,9 +235,6 @@ export default function App() {
               {nav.label}
             </button>
           ))}
-          <button onClick={() => changeUser(user?.mail ?? '')}>
-            Cambiar de rol
-          </button>
         </nav>
 
         {/* Contenido */}

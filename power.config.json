@@ -16,7 +16,8 @@
         "parkingslots",
         "reservations",
         "settings",
-        "usuarios"
+        "usuarios",
+        "pico y placa"
       ],
       "authenticationType": null,
       "sharedConnectionId": null,
@@ -37,6 +38,9 @@
             },
             "usuarios": {
               "tableName": "d36d18f8-a0b6-4b2a-80ba-c8f619b78b26"
+            },
+            "pico y placa": {
+              "tableName": "55f12b46-e008-4db3-9f68-39403eb1620f"
             }
           }
         }

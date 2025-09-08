@@ -851,6 +851,13 @@ export const dataSourcesInfo = {
     "dataSourceType": "Connector",
     "apis": {}
   },
+  "pico y placa": {
+    "tableId": "55f12b46-e008-4db3-9f68-39403eb1620f",
+    "version": "",
+    "primaryKey": "ID",
+    "dataSourceType": "Connector",
+    "apis": {}
+  },
   "reservations": {
     "tableId": "0c842327-497e-460f-8b4b-a89a108640c1",
     "version": "",

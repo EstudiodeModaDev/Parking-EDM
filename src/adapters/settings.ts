@@ -5,8 +5,7 @@ import type { IOperationResult } from '@pa-client/power-code-sdk/lib/';
 // Tu modelo de UI (lo que el componente necesita)
 export type SettingsForm = {
   VisibleDays: number;
-  MaxAdvanceHours: number;
-  MaxUserTurns: number;
+  TyC: string
 };
 
 // Lo que el componente recibirá de "getOne": campos + ID
@@ -19,14 +18,12 @@ function unwrap<T>(res: IOperationResult<T>): T {
 }
 
 
-
-/** PUERTO que el componente consumirá */
 export type SettingsPort = {
   getOne: () => Promise<SettingsRecord>;
   update: (id: string, changes: Partial<SettingsForm>) => Promise<void>;
 };
 
-/** Variante A: conoces el ID fijo del registro de Settings */
+/** Variante A: conoces el ID fijo del registro de Settings 
 export function makeSettingsPortById(knownId: string): SettingsPort {
   return {
     async getOne() {
@@ -37,6 +34,7 @@ export function makeSettingsPortById(knownId: string): SettingsPort {
         VisibleDays: Number(rec.VisibleDays ?? 7),
         MaxAdvanceHours: Number(rec.MaxAdvanceHours ?? 72),
         MaxUserTurns: Number(rec.MaxUserTurns ?? 3),
+        TyC: rec.TerminosyCondiciones
       };
       return ret;
     },
@@ -55,30 +53,36 @@ export function makeSettingsPortSingle(): SettingsPort {
       const res = await SettingsService.getAll({ top: 1 });
       const list = unwrap(res) as any[];
       if (!list || !list.length) {
-        // Si no existe, podrías crearlo con defaults:
+        // crea con los nombres REALES de la fuente
         const created = await SettingsService.create({
           VisibleDays: 7,
           MaxAdvanceHours: 72,
           MaxUserTurns: 3,
+          TerminosyCondiciones: ""   // <- importante
         } as any);
         const rec = unwrap(created) as any;
         return {
           ID: String(rec.ID),
-          VisibleDays: rec.VisibleDays,
-          MaxAdvanceHours: rec.MaxAdvanceHours,
-          MaxUserTurns: rec.MaxUserTurns,
+          VisibleDays: Number(rec.VisibleDays ?? 7),
+          TyC: String(rec.TerminosyCondiciones ?? "")
         };
       }
+
       const rec = list[0];
       return {
         ID: String(rec.ID),
         VisibleDays: Number(rec.VisibleDays ?? 7),
-        MaxAdvanceHours: Number(rec.MaxAdvanceHours ?? 72),
-        MaxUserTurns: Number(rec.MaxUserTurns ?? 3),
+        TyC: String(rec.TerminosyCondiciones ?? "")
       };
     },
+
     async update(id, changes) {
-      const res = await SettingsService.update(id, changes);
+      // mapear nombres de UI -> nombres reales del backend
+      const payload: any = {};
+      if (changes.VisibleDays !== undefined) payload.VisibleDays = changes.VisibleDays;
+      if (changes.TyC !== undefined) payload.TerminosyCondiciones = changes.TyC;
+
+      const res = await SettingsService.update(id, payload);
       unwrap(res);
     },
   };
