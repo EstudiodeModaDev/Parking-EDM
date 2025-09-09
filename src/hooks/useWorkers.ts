@@ -1,13 +1,8 @@
 // hooks/useWorkers.ts
 import * as React from 'react';
 import { Office365UsersService } from '../Services/Office365UsersService';
+import type { Worker } from '../adapters/shared';
 
-export type Worker = {
-  id: string;
-  displayName: string;
-  mail?: string;
-  jobTitle?: string;
-};
 
 const cache: { data: Worker[] | null; promise: Promise<Worker[]> | null } = {
   data: null,

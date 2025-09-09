@@ -81,7 +81,7 @@ export function useMisReservas(userMail: string, isAdmin = false): UseMisReserva
   const [hasNext, setHasNext] = React.useState(false);
 
   // Si es admin, por defecto muestro "all", si no, "upcoming-active"
-  const [filterMode, setFilterMode] = React.useState<FilterMode>(isAdmin ? 'history' : 'upcoming-active');
+  const [filterMode, setFilterMode] = React.useState<FilterMode>('upcoming-active');
 
   const mailSafe = (userMail ?? '').replace(/'/g, "''");
   const today = new Date().toISOString().slice(0, 10);
@@ -235,7 +235,7 @@ export function useMisReservas(userMail: string, isAdmin = false): UseMisReserva
 
   // si cambia isAdmin en caliente, ajusta modo por UX (opcional)
   React.useEffect(() => {
-    setFilterMode(isAdmin ? 'history' : 'upcoming-active');
+    setFilterMode('upcoming-active');
   }, [isAdmin]);
 
   // Carga inicial

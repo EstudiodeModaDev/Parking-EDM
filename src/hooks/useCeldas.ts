@@ -247,6 +247,7 @@ export function useCeldas(): UseParkingSlotsReturn {
     TipoCelda: (r.TipoCelda ?? r.tipoCelda ?? '-') as any,
     Activa: (r.Activa ?? r.estado ?? '-') as any,
     Raw: r,
+    Itinerancia: r.Itinerancia
   });
 
   const norm = (s: unknown) => String(s ?? '').trim().toUpperCase();

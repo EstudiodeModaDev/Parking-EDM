@@ -3,15 +3,15 @@ import * as React from 'react';
 import styles from './AdminCells.module.css';
 import { useCeldas } from '../../hooks/useCeldas';
 import { Modal } from '../Modals/modals';
+import SlotDetailsModal from './SlotDetailsModal';
 
 import {
   fetchAssignee,
-  searchUnassignedCollaborators,
-  assignSlotToCollaborator,
-  unassignSlotFromCollaborator,
   type Assignee,
 } from '../../hooks/AsignarCeldas';
 import { ReservationsService } from '../../Services/ReservationsService';
+import type { SlotUI } from '../../adapters/cells';
+import { useWorkers } from '../../hooks/useWorkers';
 
 // ---- Configuración de franjas horarias ----
 const AM_START = { h: 6, m: 0 };    // 06:00
@@ -38,8 +38,10 @@ function getCurrentTurn(): 'Manana' | 'Tarde' | null {
 const ClientList: React.FC = () => {
   const {
     rows, loading, error, search, tipo, pageSize, pageIndex, hasNext, createOpen, createSaving, createError, createForm, canCreate,
-    setSearch, setTipo, setPageSize, nextPage, prevPage, reloadAll, toggleEstado, setCreateForm, openModal, closeModal, create, 
+    setSearch, setTipo, setPageSize, nextPage, prevPage, reloadAll, setCreateForm, openModal, closeModal, create, 
   } = useCeldas();
+
+    const { workers, loading: workersLoading} = useWorkers();
 
   const [open, setOpen] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<number | null>(null);
@@ -50,32 +52,27 @@ const ClientList: React.FC = () => {
   const [assignee, setAssignee] = React.useState<Assignee>(null);
 
   // Buscador del picker
-  const [pickerOpen, setPickerOpen] = React.useState(false);
-  const [term, setTerm] = React.useState('');
   const [results, setResults] = React.useState<Assignee[]>([]);
-  const [searching, setSearching] = React.useState(false);
+
+  const [selected, setSelected] = React.useState<SlotUI | null>(null);
+
+  console.log(results, assignError, assignLoading, assignee)
 
   // Ocupación por turno para HOY: { [slotId]: { Manana?: true, Tarde?: true } }
   const [occByTurn, setOccByTurn] = React.useState<Record<number, TurnFlags>>({});
   const [occLoading, setOccLoading] = React.useState(false);
 
-  const selected = React.useMemo(
-    () => rows.find(r => r.Id === selectedId) ?? null,
-    [rows, selectedId]
-  );
 
   const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') { e.preventDefault(); reloadAll(); }
   };
 
-  const openDetails = (id: number) => { setSelectedId(id); setOpen(true); };
+  const openDetails = (row: SlotUI) => {setSelected(row); setOpen(true);};
   const closeDetails = () => {
     setOpen(false);
     setSelectedId(null);
     setAssignError(null);
     setAssignee(null);
-    setPickerOpen(false);
-    setTerm('');
     setResults([]);
   };
 
@@ -138,63 +135,6 @@ const ClientList: React.FC = () => {
     })();
     return () => { cancel = true; };
   }, [open, selectedId]);
-
-  const doSearch = React.useCallback(async () => {
-    setSearching(true);
-    setAssignError(null);
-    try {
-      const vehicleType = selected?.TipoCelda === 'Carro' || selected?.TipoCelda === 'Moto'
-        ? (selected!.TipoCelda as 'Carro' | 'Moto')
-        : undefined;
-
-      const res = await searchUnassignedCollaborators(term, vehicleType);
-      setResults(res);
-    } catch (e: any) {
-      setAssignError(e?.message ?? 'Error buscando colaboradores');
-      setResults([]);
-    } finally {
-      setSearching(false);
-    }
-  }, [term, selected]);
-
-  const onAssign = React.useCallback(async (candidate: Assignee) => {
-    if (!candidate || !selected) return;
-    setAssignLoading(true);
-    setAssignError(null);
-    try {
-      await assignSlotToCollaborator(selected.Id, candidate.id, selected.Title);
-      setAssignee(candidate);
-      setPickerOpen(false);
-      setTerm('');
-      setResults([]);
-      await reloadAll();
-    } catch (e: any) {
-      setAssignError(e?.message ?? 'No se pudo asignar la celda');
-    } finally {
-      setAssignLoading(false);
-    }
-  }, [selected, reloadAll]);
-
-  const onUnassign = React.useCallback(async () => {
-    if (!assignee || !selected) return;
-    setAssignLoading(true);
-    setAssignError(null);
-    try {
-      await unassignSlotFromCollaborator(selected.Id);
-      setAssignee(null);
-      await reloadAll();
-    } catch (e: any) {
-      setAssignError(e?.message ?? 'No se pudo desasignar la celda');
-    } finally {
-      setAssignLoading(false);
-    }
-  }, [assignee, selected, reloadAll]);
-
-  const onConfirmToggle = async () => {
-    if (!selected) return;
-    await toggleEstado(selected.Id, selected.Activa);
-    await reloadAll();
-  };
 
   // Render de badge por turno
   const renderTurnBadge = (
@@ -306,8 +246,10 @@ const ClientList: React.FC = () => {
                         <span className={styles.cardCode}>{r.Title}</span>
                         <br />
                         <span className={styles.metaLabel}>Tipo: {r.TipoCelda}</span>
+                        <br />
+                        <span className={styles.metaLabel}>Itinerancia: {r.Itinerancia}</span>
                       </div>
-                      <button className={styles.btnLink} onClick={() => openDetails(r.Id)} disabled={loading || occLoading}> {/*Boton detalles*/}
+                      <button className={styles.btnLink} onClick={() => openDetails(r)} disabled={loading || occLoading}> {/*Boton detalles*/}
                         Detalles
                       </button>
                       <div className={styles.badgeGroup}>
@@ -397,114 +339,15 @@ const ClientList: React.FC = () => {
 
 
 
-      {/* Modal */}
-      <Modal
+      {/* SlotDetailsModal */}
+      <SlotDetailsModal
         open={open}
-        title="Detalle de celda"
+        slot={selected}
         onClose={closeDetails}
-        onConfirm={onConfirmToggle}
-        confirmText={selected?.Activa === 'Activa' ? 'Desactivar celda' : 'Activar celda'}
-        cancelText="Cerrar"
-      >
-        {selected ? (
-          <div style={{ display: 'grid', gap: 12, fontSize: 14 }}>
-            <div><strong>Código:</strong> {selected.Title}</div>
-            <div><strong>Tipo:</strong> {selected.TipoCelda}</div>
-            <div>
-              <strong>Estado:</strong>{' '}
-              <span
-                style={{
-                  padding: '2px 8px',
-                  borderRadius: 999,
-                  fontSize: 12,
-                  background: selected.Activa === 'Activa' ? '#dcfce7' : '#fee2e2',
-                  color: selected.Activa === 'Activa' ? '#166534' : '#991b1b',
-                }}
-              >
-                {selected.Activa}
-              </span>
-            </div>
-
-            <hr style={{ border: 0, borderTop: '1px solid #e5e7eb' }} />
-
-            <div>
-              <h4 style={{ margin: '4px 0 8px' }}>Asignación</h4>
-              {assignLoading && <div className={styles.muted}>Cargando…</div>}
-              {assignError && <div className={styles.error}>{assignError}</div>}
-
-              {!assignLoading && (
-                <>
-                  {assignee ? (
-                    <div className={styles.assignedRow}>
-                      <div>
-                        <div><strong>Asignado a:</strong> {assignee.name}</div>
-                        {assignee.email && <div className={styles.muted}>{assignee.email}</div>}
-                      </div>
-                      <button className={styles.btnDanger} onClick={onUnassign} disabled={assignLoading}>
-                        Desasignar
-                      </button>
-                    </div>
-                  ) : (
-                    <div className={styles.assignedRow}>
-                      <div className={styles.muted}>
-                        {selected?.Activa === 'Activa' ? 'Sin asignación' : 'La celda está inactiva'}
-                      </div>
-                      <button
-                        className={styles.btnPrimary}
-                        onClick={() => setPickerOpen(true)}
-                        disabled={assignLoading || selected?.Activa !== 'Activa'}
-                        title={selected?.Activa !== 'Activa' ? 'Activa la celda para asignar' : undefined}
-                      >
-                        Asignar
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {pickerOpen && (
-                <div className={styles.pickerPanel}>
-                  <div className={styles.pickerHeader}>
-                    <input
-                      className={styles.searchInput}
-                      placeholder="Buscar colaborador (nombre o correo)…"
-                      value={term}
-                      onChange={(e) => setTerm(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && doSearch()}
-                    />
-                    <button className={styles.btnPrimary} onClick={doSearch} disabled={searching}>
-                      {searching ? 'Buscando…' : 'Buscar'}
-                    </button>
-                    <button
-                      className={styles.btnGhost}
-                      onClick={() => { setPickerOpen(false); setTerm(''); setResults([]); }}
-                    >
-                      Cerrar
-                    </button>
-                  </div>
-
-                  <ul className={styles.resultList}>
-                    {results.length === 0 && !searching && <li className={styles.muted}>Sin resultados</li>}
-                    {results.map(c => (
-                      <li key={c?.id} className={styles.resultItem}>
-                        <div>
-                          <div className={styles.resultName}>{c?.name}</div>
-                          {c?.email && <div className={styles.resultEmail}>{c.email}</div>}
-                        </div>
-                        <button className={styles.btnPrimary} onClick={() => onAssign(c)} disabled={assignLoading}>
-                          Asignar
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div>Cargando…</div>
-        )}
-      </Modal>
+        onChanged={reloadAll}
+        workers={workers}
+        workersLoading = {workersLoading}
+      />
     </section>
   );
 };

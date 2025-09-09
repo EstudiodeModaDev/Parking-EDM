@@ -14,8 +14,7 @@ const ColaboradoresInscritos: React.FC = () => {
   const {rows, loading, error, search, pageSize, pageIndex, hasNext,
     setSearch, setPageSize, nextPage, prevPage, reloadAll, addCollaborator, deleteCollaborator
   } = useCollaborators();
-  const { workers, loading: workersLoading, refresh} = useWorkers(); // ✅
-
+  const { workers, loading: workersLoading, refresh} = useWorkers();
   // Hook de celdas
   const { getUnassignedSlots } = useCeldas();
 

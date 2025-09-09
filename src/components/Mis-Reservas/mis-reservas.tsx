@@ -23,10 +23,7 @@ const MisReservas: React.FC<Props> = ({ userMail, isAdmin = false}) => {
         <div className={styles.topBar}>
           {/* Selector de modo */}
           <div className={styles.segmented}>
-            <button
-              type="button"
-              className={`${styles.segmentBtn} ${filterMode === 'upcoming-active' ? styles.segmentBtnActive : ''}`}
-              onClick={() => setFilterMode('upcoming-active')}
+            <button type="button" className={`${styles.segmentBtn} ${filterMode === 'upcoming-active' ? styles.segmentBtnActive : ''}`} onClick={() => setFilterMode('upcoming-active')}
               disabled={loading}
               title="Mostrar próximas con estado Activa"
             >
@@ -42,38 +39,21 @@ const MisReservas: React.FC<Props> = ({ userMail, isAdmin = false}) => {
               Historial
             </button>
           </div>
+        </div>
 
+        <div>
           {/* Filtro de fechas SOLO en historial */}
           {filterMode === 'history' && (
-            <form
-              className={styles.form}
-              onSubmit={(e) => { e.preventDefault(); applyRange(); }}
-            >
+            <form className={styles.form} onSubmit={(e) => { e.preventDefault(); applyRange(); }}>
               <label className={styles.label}>
                 Desde
-                <input
-                  className={styles.input}
-                  type="date"
-                  value={range.from}
-                  max={range.to || undefined}
-                  onChange={(e) => setRange(r => ({ ...r, from: e.target.value }))}
-                />
+                <input className={styles.input} type="date" value={range.from} max={range.to || undefined} onChange={(e) => setRange(r => ({ ...r, from: e.target.value }))}/>
               </label>
 
               <label className={styles.label}>
                 Hasta
-                <input
-                  className={styles.input}
-                  type="date"
-                  value={range.to}
-                  min={range.from || undefined}
-                  onChange={(e) => setRange(r => ({ ...r, to: e.target.value }))}
-                />
+                <input className={styles.input} type="date" value={range.to} min={range.from || undefined} onChange={(e) => setRange(r => ({ ...r, to: e.target.value }))}/>
               </label>
-
-              <button className={styles.button} type="submit" disabled={loading}>
-                Aplicar
-              </button>
             </form>
           )}
         </div>

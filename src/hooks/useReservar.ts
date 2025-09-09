@@ -122,8 +122,7 @@ export function useReservar(userMail: string, userName: string, opts?: UseReserv
       if (!available) continue;
 
       // 4) Crear la(s) reserva(s)
-      const turnsToCreate =
-        (turn === 'Dia' ? (['Manana', 'Tarde'] as const) : [turn]) as readonly Exclude<TurnType, 'Dia'>[];
+      const turnsToCreate = (turn === 'Dia' ? (['Manana', 'Tarde'] as const) : [turn]) as readonly Exclude<TurnType, 'Dia'>[];
 
       try {
         let lastCreated: any = null;

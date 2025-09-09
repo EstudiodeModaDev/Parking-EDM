@@ -7,6 +7,7 @@ import type { Worker } from '../../adapters/shared';
 // Si ya tienes este tipo en otra parte, usa ese y borra esta definición.
 export type VehicleType = 'Carro' | 'Moto';
 
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
@@ -123,6 +124,7 @@ const ModalAgregarColaborador: React.FC<Props> = ({
                 {filteredWorkers.map(w => (
                   <option key={w.id} value={w.id}>
                     {w.displayName}
+                    {w.mail ? ` · ${w.mail}` : ''}
                     {w.jobTitle ? ` · ${w.jobTitle}` : ''}
                   </option>
                 ))}
