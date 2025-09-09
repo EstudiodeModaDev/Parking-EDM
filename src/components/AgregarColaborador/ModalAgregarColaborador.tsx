@@ -2,17 +2,10 @@ import * as React from 'react';
 import styles from './modalAgregarColaborador.module.css';
 import type { NewCollaborator } from '../../adapters/colaboradores';
 import type { SlotUI } from '../../adapters/cells';
+import type { Worker } from '../../adapters/shared';
 
 // Si ya tienes este tipo en otra parte, usa ese y borra esta definición.
 export type VehicleType = 'Carro' | 'Moto';
-
-// Tipo mínimo del colaborador (ajusta a tu modelo si ya existe)
-export type Worker = {
-  id: string;
-  displayName: string;
-  mail?: string;
-  jobTitle?: string;
-};
 
 type Props = {
   isOpen: boolean;
@@ -82,6 +75,11 @@ const ModalAgregarColaborador: React.FC<Props> = ({
     }
   };
 
+  const buildWorkerLabel = (w: Worker) => {
+    const full = `${w.displayName}${w.mail ? ` · ${w.mail}` : ''}${w.jobTitle ? ` · ${w.jobTitle}` : ''}`;
+    return full.length > 60 ? full.slice(0, 57) + '…' : full;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave?.(form);
@@ -130,7 +128,6 @@ const ModalAgregarColaborador: React.FC<Props> = ({
                 {filteredWorkers.map(w => (
                   <option key={w.id} value={w.id}>
                     {w.displayName}
-                    {w.mail ? ` · ${w.mail}` : ''}
                     {w.jobTitle ? ` · ${w.jobTitle}` : ''}
                   </option>
                 ))}
