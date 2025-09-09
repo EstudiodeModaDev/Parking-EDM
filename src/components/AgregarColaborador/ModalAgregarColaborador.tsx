@@ -2,18 +2,30 @@ import * as React from 'react';
 import styles from './modalAgregarColaborador.module.css';
 import type { NewCollaborator } from '../../adapters/colaboradores';
 import type { SlotUI } from '../../adapters/cells';
-// Si ya tienes VehicleType en tus adapters, usa esa import y borra la siguiente línea:
-// import type { VehicleType } from '../../adapters/shared';
+
+// Si ya tienes este tipo en otra parte, usa ese y borra esta definición.
 export type VehicleType = 'Carro' | 'Moto';
+
+// Tipo mínimo del colaborador (ajusta a tu modelo si ya existe)
+export type Worker = {
+  id: string;
+  displayName: string;
+  mail?: string;
+  jobTitle?: string;
+};
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   onSave?: (c: NewCollaborator) => void;
-  /** Lista de celdas sin asignar (no lookup) */
+
+  // Opcional: celdas sin asignar, si más adelante las reactivas en el modal
   slots?: SlotUI[];
-  /** Estado de carga de las celdas */
   slotsLoading?: boolean;
+
+  // Lista de colaboradores para el dropdown
+  workers?: Worker[];
+  workersLoading?: boolean;
 };
 
 const initialForm: NewCollaborator = {
@@ -21,42 +33,63 @@ const initialForm: NewCollaborator = {
   correo: '',
   tipoVehiculo: 'Carro',
   placa: '',
-  // Para listas sin lookup guardamos texto/código y opcionalmente el id de slot
   codigoCelda: '',
-  IdSpot: '', // si en tu modelo es number, cambia a 0 y tipa acorde
+  IdSpot: '',
 };
+
+const norm = (s: string) =>
+  s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
 
 const ModalAgregarColaborador: React.FC<Props> = ({
   isOpen,
   onClose,
   onSave,
- // slots = [],
- // slotsLoading = false,
+  workers = [],
+  workersLoading = false,
+  // slots = [],
+  // slotsLoading = false,
 }) => {
+  // ==== HOOKS (siempre arriba, sin returns antes) ====
   const [form, setForm] = React.useState<NewCollaborator>(initialForm);
+  const [colabTerm, setColabTerm] = React.useState('');
+  const [selectedWorkerId, setSelectedWorkerId] = React.useState<string>('');
 
   React.useEffect(() => {
-    if (isOpen) setForm(initialForm);
+    if (isOpen) {
+      setForm(initialForm);
+      setColabTerm('');
+      setSelectedWorkerId('');
+    }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  const filteredWorkers = React.useMemo(() => {
+    if (!colabTerm) return workers;
+    const q = norm(colabTerm);
+    return workers.filter(w =>
+      norm(`${w.displayName} ${w.mail ?? ''} ${w.jobTitle ?? ''}`).includes(q)
+    );
+  }, [workers, colabTerm]);
 
-  // Al seleccionar una celda por código (Title), también llenamos IdSpot si existe
-  /*const handleCeldaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const codigo = e.target.value;
-    const slot = slots.find(s => s.Title === codigo);
-    setForm(f => ({
-      ...f,
-      codigoCelda: codigo,
-      IdSpot: slot ? String(slot.Id) : '', // ajusta a number si tu modelo lo requiere
-    }));
-  };*/
+  const onSelectWorker = (id: string) => {
+    setSelectedWorkerId(id);
+    const w = workers.find(x => String(x.id) === String(id));
+    if (w) {
+      setForm(f => ({
+        ...f,
+        nombre: w.displayName || '',
+        correo: w.mail || '',
+      }));
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave?.(form);
     onClose();
   };
+
+  // guard de render (después de declarar hooks)
+  if (!isOpen) return null;
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" onClick={onClose}>
@@ -67,6 +100,49 @@ const ModalAgregarColaborador: React.FC<Props> = ({
         </header>
 
         <form className={styles.body} onSubmit={handleSubmit}>
+          {/* === Colaborador con búsqueda + dropdown === */}
+          <fieldset className={styles.fieldset}>
+            <label className={styles.label}>Colaborador</label>
+
+            <div className={styles.comboColab}>
+              <input
+                className={styles.input}
+                type="text"
+                placeholder="Buscar por nombre, correo o cargo…"
+                value={colabTerm}
+                onChange={(e) => setColabTerm(e.target.value)}
+                disabled={workersLoading}
+              />
+
+              <select
+                className={styles.select}
+                value={selectedWorkerId}
+                onChange={(e) => onSelectWorker(e.target.value)}
+                disabled={workersLoading}
+              >
+                <option value="" disabled>
+                  {workersLoading
+                    ? 'Cargando colaboradores…'
+                    : filteredWorkers.length === 0
+                      ? 'Sin resultados'
+                      : 'Selecciona un colaborador'}
+                </option>
+                {filteredWorkers.map(w => (
+                  <option key={w.id} value={w.id}>
+                    {w.displayName}
+                    {w.mail ? ` · ${w.mail}` : ''}
+                    {w.jobTitle ? ` · ${w.jobTitle}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <small className={styles.hint}>
+              Al seleccionar un colaborador, llenamos automáticamente Nombre y Correo (puedes editarlos).
+            </small>
+          </fieldset>
+
+          {/* === Datos editables/confirmables === */}
           <label className={styles.label}>
             Nombre
             <input
@@ -113,12 +189,21 @@ const ModalAgregarColaborador: React.FC<Props> = ({
             />
           </label>
 
-         {/*} <label className={styles.label}>
+          {/* Si luego activas celdas sin asignar, reusa tu bloque anterior:
+          <label className={styles.label}>
             Celda (sin asignar)
             <select
               className={styles.select}
               value={form.codigoCelda}
-              onChange={handleCeldaChange}
+              onChange={(e) => {
+                const codigo = e.target.value;
+                const slot = slots.find(s => s.Title === codigo);
+                setForm(f => ({
+                  ...f,
+                  codigoCelda: codigo,
+                  IdSpot: slot ? String(slot.Id) : '',
+                }));
+              }}
               required
               disabled={slotsLoading}
             >
@@ -131,7 +216,8 @@ const ModalAgregarColaborador: React.FC<Props> = ({
                 </option>
               ))}
             </select>
-          </label>*/}
+          </label>
+          */}
 
           <div className={styles.actions}>
             <button type="button" className={styles.btnGhost} onClick={onClose}>Cancelar</button>

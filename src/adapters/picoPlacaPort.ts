@@ -18,7 +18,6 @@ export function makePicoPlacaPort(): PicoPlacaPort {
     async getAll() {
       const items = await PicoyPlacaService.getAll();
       const data = items.data
-      // Asegura strings y orden por Title asc (1..5)
       return (data as any[]).map(i => ({
         ID: String(i.ID),
         Title: String(i.Title ?? ''),

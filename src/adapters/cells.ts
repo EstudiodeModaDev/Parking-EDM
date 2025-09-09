@@ -1,3 +1,5 @@
+import type { VehicleType } from "./shared";
+
 export type SlotUI = {
   Id: number;
   Title: string;
@@ -7,3 +9,5 @@ export type SlotUI = {
 };
 
 export type TurnFlags = { Manana?: boolean; Tarde?: boolean };
+
+export type CreateForm = { Title: string; TipoCelda: VehicleType; Activa: 'Activa' | 'Inactiva'; Itinerancia: 'Empleado Fijo' | 'Empleado Itinerante' | 'Directivo' };

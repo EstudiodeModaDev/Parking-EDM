@@ -95,18 +95,7 @@ export const Modal: React.FC<ModalProps> = ({
               {termsError && <div style={{ color: 'crimson', fontSize: 12 }}>{termsError}</div>}
 
               {!termsLoading && !termsError && (
-                <div
-                  style={{
-                    maxHeight: 160,
-                    overflow: 'auto',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 8,
-                    padding: 12,
-                    background: '#fafafa',
-                    fontSize: 13,
-                    lineHeight: 1.45,
-                  }}
-                  // Asegúrate de que la columna en SharePoint sea Texto enriquecido (HTML)
+                <div className={styles.termsBox}
                   dangerouslySetInnerHTML={{ __html: termsHtml }}
                 />
               )}

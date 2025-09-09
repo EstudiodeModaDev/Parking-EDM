@@ -7,6 +7,25 @@
   z-index: 1000;
 }
 
+.termsBox {
+  max-height: 160px;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafafa;
+
+  /* tipografía */
+  font-size: 13px;
+  line-height: 1.55;
+
+  /* justificado */
+  text-align: justify;
+  text-justify: inter-word; /* no estándar, pero ayuda en algunos navegadores */
+  hyphens: auto;            /* cortes de palabra cuando aplique */
+  word-break: normal;       /* evita cortes feos */
+}
+
 .modal {
   background: #fff;
   width: min(520px, 96vw);

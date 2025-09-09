@@ -1,4 +1,4 @@
-// src/components/AdminCells/ClientList.tsx
+
 import * as React from 'react';
 import styles from './AdminCells.module.css';
 import { useCeldas } from '../../hooks/useCeldas';
@@ -37,8 +37,8 @@ function getCurrentTurn(): 'Manana' | 'Tarde' | null {
 
 const ClientList: React.FC = () => {
   const {
-    rows, loading, error, search, tipo, pageSize, pageIndex, hasNext,
-    setSearch, setTipo, setPageSize, nextPage, prevPage, reloadAll, toggleEstado,
+    rows, loading, error, search, tipo, pageSize, pageIndex, hasNext, createOpen, createSaving, createError, createForm, canCreate,
+    setSearch, setTipo, setPageSize, nextPage, prevPage, reloadAll, toggleEstado, setCreateForm, openModal, closeModal, create, 
   } = useCeldas();
 
   const [open, setOpen] = React.useState(false);
@@ -264,6 +264,16 @@ const ClientList: React.FC = () => {
             <option value={50}>50</option>
           </select>
         </div>
+
+        <div className={styles.actionsRight}>
+          <button
+            className={`${styles.btn} ${styles.btnPrimary} ${styles.btnAdd}`}
+            onClick={openModal}
+            disabled={loading}
+          >
+            Añadir celda
+          </button>
+        </div>
       </div>
 
       {loading && <div style={{ marginTop: 8 }}>Cargando…</div>}
@@ -297,7 +307,7 @@ const ClientList: React.FC = () => {
                         <br />
                         <span className={styles.metaLabel}>Tipo: {r.TipoCelda}</span>
                       </div>
-                      <button className={styles.btnPrimary} onClick={() => openDetails(r.Id)} disabled={loading || occLoading}> {/*Boton detalles*/}
+                      <button className={styles.btnLink} onClick={() => openDetails(r.Id)} disabled={loading || occLoading}> {/*Boton detalles*/}
                         Detalles
                       </button>
                       <div className={styles.badgeGroup}>
@@ -323,6 +333,69 @@ const ClientList: React.FC = () => {
           </div>
         </>
       )}
+
+      {/*Modal de creación de celda */}
+      <Modal open={createOpen} title="Añadir celda" onClose={closeModal} onConfirm={create} confirmText={createSaving ? 'Creando…' : 'Crear'} cancelText="Cancelar">
+        <div style={{ display: 'grid', gap: 12, fontSize: 14 }}>
+          {createError && (
+            <div style={{ color: 'crimson', fontSize: 13 }}>{createError}</div>
+          )}
+
+          <label style={{ display: 'grid', gap: 6 }}>
+            <span><strong>Código del celda</strong></span>
+            <input
+              className={styles.searchInput}
+              value={createForm.Title}
+              onChange={(e) => setCreateForm(f => ({ ...f, Title: e.target.value }))}
+              placeholder="Ej: A-02"
+            />
+          </label>
+
+          <label style={{ display: 'grid', gap: 6 }}>
+            <span><strong>Tipo de celda</strong></span>
+            <select
+              className={styles.pageSizeSelect}
+              value={createForm.TipoCelda}
+              onChange={(e) => setCreateForm(f => ({ ...f, TipoCelda: e.target.value as 'Carro' | 'Moto' }))}
+            >
+              <option value="Carro">Carro</option>
+              <option value="Moto">Moto</option>
+            </select>
+          </label>
+
+          <label style={{ display: 'grid', gap: 6 }}>
+            <span><strong>Estado</strong></span>
+            <select
+              className={styles.pageSizeSelect}
+              value={createForm.Activa}
+              onChange={(e) => setCreateForm(f => ({ ...f, Activa: e.target.value as 'Activa' | 'Inactiva' }))}
+            >
+              <option value="Activa">Activa</option>
+              <option value="Inactiva">Inactiva</option>
+            </select>
+          </label>
+
+          
+          <label style={{ display: 'grid', gap: 6 }}>
+            <span><strong>Estado</strong></span>
+            <select className={styles.pageSizeSelect} value={createForm.Itinerancia} 
+              onChange={(e) => setCreateForm(f => ({ ...f, Itinerancia: e.target.value as 'Empleado Fijo' | 'Empleado Itinerante' | 'Directivo'}))}
+            >
+              <option value="Empleado Fijo">Empleado Fijo</option>
+              <option value="Empleado Itinerante">Empleado Itinerante</option>
+              <option value="Directivo">Directivo</option>
+            </select>
+          </label>
+
+          {!canCreate && (
+            <small className={styles.muted}>
+              Completa el código y el tipo para habilitar “Crear”.
+            </small>
+          )}
+        </div>
+      </Modal>
+
+
 
       {/* Modal */}
       <Modal

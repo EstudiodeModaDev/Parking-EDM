@@ -58,7 +58,6 @@
 }
 
 
-
 /*Tarjetas*/
 .cardGrid {
   list-style: none;
@@ -81,11 +80,13 @@
 }
 
 .cardHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
+    display: grid !important;
+    grid-template-columns: 1fr auto;                  /* título ocupa, botón ajusta */
+    grid-template-areas:
+      "title  details"
+      "badges badges";
+    align-items: start !important;
+    gap: 8px 12px !important;      
 }
 
 .cardCode {
@@ -93,12 +94,6 @@
   color: #0f172a;
 }
 
-.badge {
-  font-size: 12px;
-  border-radius: 999px;
-  padding: 2px 8px;
-  border: 1px solid transparent;
-}
 
 .badgeActive {
   background: #dcfce7;
@@ -116,31 +111,17 @@
   gap: 6px;
 }
 
-.metaRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+
 .metaLabel {
   color: #64748b;
   font-size: 13px;
 }
-.metaValue {
-  color: #0f172a;
-  font-weight: 500;
-}
 
-.cardFooter {
-  margin-top: 6px;
-  display: flex;
-  justify-content: flex-end;
-}
 
 .btnPrimary {
   padding: 6px 10px;
   border-radius: 8px;
   border: none;
-  background: #2563eb;
   color: #fff;
   cursor: pointer;
 }
@@ -170,6 +151,19 @@
 }
 
 /* Estados */
+
+/* Badges debajo del tipo (segunda fila, ancho completo) */
+.badgeGroup {
+  grid-area: badges;
+  justify-self: start;                               
+  width: auto !important;
+  display: flex !important;
+  flex-direction: column !important;                 
+  align-items: flex-start !important;
+  gap: 6px !important;
+}
+
+
 .badgeFree {
   background: #dcfce7;   /* verde claro */
   color: #166534;        /* verde oscuro */
@@ -194,12 +188,18 @@
   border-color: #d1d5db;
 }
 
-.celdaTitle{
-  width: 100%;
-  text-align: center;
+.celdaTitle { 
+  grid-area: title; 
+  width: auto !important;
+  text-align: left !important;
 }
 
-
+.cardHeader .btnLink,
+.cardHeader .btnPrimary {
+  grid-area: details;
+  justify-self: start;                               /* o end si lo quieres pegado a la derecha */
+  margin-top: 2px;
+}
 
 /* Botones genéricos */
 .btn {
@@ -236,3 +236,22 @@
 .pageBtn:disabled { opacity: .6; cursor: not-allowed; }
 .pageBtn:hover { background: #f3f4f6; }
 .pageInfo { font-size: 14px; color: var(--muted); }
+
+.btnLink {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+
+  /* quita estilos nativos del botón (Edge/Chrome/Firefox) */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.btnLink:hover { text-decoration: underline; }
+.btnLink:active { transform: translateY(1px); }
+.btnLink:disabled { opacity: .6; cursor: not-allowed; }

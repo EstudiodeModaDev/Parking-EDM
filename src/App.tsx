@@ -216,7 +216,6 @@ export default function App() {
 
           {isAdmin && selected === 'pyp' && (
             <div className="center">
-              <h2>Pico y placa</h2>
               <PicoPlacaAdmin />
             </div>
           )}

@@ -7,15 +7,14 @@ import type { Collaborator } from '../../adapters/colaboradores';
 import type { SlotUI } from '../../adapters/cells';
 import { useCollaborators } from '../../hooks/useColaboradores';
 import { useCeldas } from '../../hooks/useCeldas';
+import { useWorkers } from '../../hooks/useCoworkers';
 
 const ColaboradoresInscritos: React.FC = () => {
   // Hook de colaboradores
-  const {
-    rows, loading, error,
-    search, setSearch,
-    pageSize, setPageSize, pageIndex, hasNext, nextPage, prevPage,
-    reloadAll, addCollaborator, deleteCollaborator
+  const {rows, loading, error, search, pageSize, pageIndex, hasNext,
+    setSearch, setPageSize, nextPage, prevPage, reloadAll, addCollaborator, deleteCollaborator
   } = useCollaborators();
+  const { workers, loading: workersLoading } = useWorkers(); // ✅
 
   // Hook de celdas
   const { getUnassignedSlots } = useCeldas();
@@ -231,6 +230,8 @@ const ColaboradoresInscritos: React.FC = () => {
           onSave={async (c) => { await addCollaborator(c); closeAddModal(); }}
           slots={freeSlots}
           slotsLoading={slotsLoading}
+          workers={workers}
+          workersLoading= {workersLoading}
         />
 
         {/* MODAL: Ver detalles */}
