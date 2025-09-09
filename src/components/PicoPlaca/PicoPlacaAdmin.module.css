@@ -1,14 +1,23 @@
 .section { padding: 8px; }
 .card {
-  background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(30,41,59,.08);
-  padding: 24px; width: 100%; max-width: 900px;
+  background: #fff; 
+  border-radius: 16px; 
+  padding: 24px; 
+  width: 80%; 
+  max-width: 900px;
+  margin-inline: auto;
+  align-self: center;  
 }
-.title { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+.title { 
+  font-size: 22px; 
+  font-weight: 700; 
+  
+  color: #0f172a; margin-bottom: 12px; }
 .error { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; padding:8px 12px; border-radius:8px; margin-bottom:10px; }
 .ok { background:#dcfce7; color:#14532d; border:1px solid #bbf7d0; padding:8px 12px; border-radius:8px; margin-bottom:10px; }
 
 .tableWrap { overflow:auto; }
-.table { width:80%; border-collapse: collapse; }
+.table { width: 80%; margin: 0 auto; border-collapse: collapse; }
 .table th, .table td { padding: 10px 8px; border-bottom: 1px solid #e5e7eb; text-align:left; }
 .day { width: 50px; font-weight: 600; color:#334155; }
 

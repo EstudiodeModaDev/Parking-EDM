@@ -23,30 +23,6 @@ export type SettingsPort = {
   update: (id: string, changes: Partial<SettingsForm>) => Promise<void>;
 };
 
-/** Variante A: conoces el ID fijo del registro de Settings 
-export function makeSettingsPortById(knownId: string): SettingsPort {
-  return {
-    async getOne() {
-      const res = await SettingsService.get(knownId);
-      const rec = unwrap(res) as any;
-      const ret: SettingsRecord = {
-        ID: String(rec.ID ?? knownId),
-        VisibleDays: Number(rec.VisibleDays ?? 7),
-        MaxAdvanceHours: Number(rec.MaxAdvanceHours ?? 72),
-        MaxUserTurns: Number(rec.MaxUserTurns ?? 3),
-        TyC: rec.TerminosyCondiciones
-      };
-      return ret;
-    },
-    async update(id, changes) {
-      const res = await SettingsService.update(id, changes);
-      // puedes validar res si tu SDK devuelve errores en otra propiedad
-      unwrap(res);
-    },
-  };
-}
-
-/** Variante B: tomas el único registro desde getAll() (el primero) */
 export function makeSettingsPortSingle(): SettingsPort {
   return {
     async getOne() {

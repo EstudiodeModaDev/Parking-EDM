@@ -22,6 +22,7 @@ import { ToastProvider } from './components/Toast/ToasProvider';
 import Reportes from './components/Reportes/reportes';
 import { UsuariosService } from './Services/UsuariosService';
 import type { IGetAllOptions } from './Models/CommonModels';
+import PicoPlacaAdmin from './components/PicoPlaca/PicoPlaca';
 
 //Pestañas del nav
 const NAVS = [
@@ -30,6 +31,8 @@ const NAVS = [
   { key: 'admin', label: 'Administración', visible: 'admin' },
   { key: 'colaboradores', label: 'Colaboradores', visible: 'admin' },
   { key: 'reportes', label: 'Reportes', visible: 'admin' },
+  { key: 'pyp', label: 'Pico y placa', visible: 'admin' },
+
 ] as const;
 
 type NavKey = typeof NAVS[number]['key'];
@@ -263,6 +266,13 @@ export default function App() {
           )}
 
           {selected === 'reportes' && <Reportes></Reportes>}
+
+          {selected === 'pyp' && (
+            <div className="center">
+              <h2>Pico y placa</h2>
+              <PicoPlacaAdmin></PicoPlacaAdmin>
+            </div>
+          )}
         </main>
       </div>
     </ToastProvider>

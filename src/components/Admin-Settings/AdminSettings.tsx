@@ -1,7 +1,6 @@
 import * as React from 'react';
 import styles from './AdminSettings.module.css';
 import type { SettingsPort, SettingsForm, SettingsRecord } from '../../adapters/settings';
-import PicoPlacaAdmin from '../PicoPlaca/PicoPlaca'; // ← sin espacios en la ruta
 
 const DEFAULTS: SettingsForm = { VisibleDays: 3, TyC: "" };
 
@@ -155,7 +154,6 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
         </div>
       </div>
 
-      {/* TyC */}
       <div className={styles.form}>
         <div className={styles.field}>
           <label className={styles.label} htmlFor="TyC">Términos y condiciones</label>
@@ -172,11 +170,6 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
           </small>
         </div>
       </div>
-
-      {/* Pico y Placa justo DEBAJO de TyC */}
-      <hr className={styles.divider} />
-      <h3 className={styles.subtitle}>Pico y Placa</h3>
-      <PicoPlacaAdmin />
 
       {error && <div className={styles.error}>{error}</div>}
       {okMsg && <div className={styles.ok}>{okMsg}</div>}
