@@ -1,87 +1,130 @@
+/* ====== Base ====== */
 html, body, #root { height: 100%; margin: 0; }
 body {
   min-height: 100dvh;
   display: grid;
-  place-items: center; /* centra ambos ejes */
+  place-items: center; /* centra el .page en pantalla */
+  background: #eaeff5; /* leve contraste con .page */
 }
 
+/* ====== Page layout ====== */
 .page {
   width: min(1200px, 92vw);
   min-height: min(100dvh, 100%);
   background: #f8fafc;
   display: flex;
   flex-direction: column;
-  border-radius: 12px; /* opcional, si quieres diferenciar del fondo */
+  border-radius: 12px;
+  overflow: hidden; /* recorta el bg del header si se sale */
 }
 
-/* Contenedor ancho fluido y centrado */
+/* Contenedores fluidos y centrados */
 .section, .nav, .main {
-  width: min(1100px, 92vw); /* fluido */
-  margin-inline: auto;;
+  width: min(1100px, 92vw);
+  margin-inline: auto;
 }
 
-/* Tarjeta de usuario */
+/* ====== HEADER (userCard) ====== */
 .userCard {
   position: relative;
-  background: #f1f5f9;
   border-radius: 12px;
   padding: 24px;
   margin-top: 24px;
-  min-height: 140px;
+  min-height: 160px;
 
   /* fondo */
   background-image: url("./assets/parqueadro.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
-  /* layout: fila con marca a la izq y usuario a la der */
-  display: block;
-  align-items: center;
 }
 
+/* Overlay para legibilidad sobre la foto */
+.userCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0.35),
+    rgba(15, 23, 42, 0.15)
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Título centrado en todo el header */
+.brand {
+  grid-column: 1 / -1;    
+  justify-self: center;    
+  text-align: center;
+  z-index: 1;              
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 32px);
+  line-height: 1.1;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,.35);
+  letter-spacing: .5px;
+}
+
+/* Bloque de usuario arriba a la izquierda */
+.userCluster {
+  grid-column: 1 / 2;      /* fija en la primera columna */
+  display: flex;
+  flex-direction: column;  /* avatar arriba, info abajo */
+  align-items: flex-start; /* IZQUIERDA */
+  gap: 10px;
+}
+
+/* Avatar */
 .avatar {
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: white;
+  background: rgba(255,255,255,.9);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 20px;
-  color: black;
-  border: 1px solid rgba(37,99,235,.15);
+  font-size: 26px;
+  color: #0f172a;
+  border: 1px solid rgba(37, 99, 235, .2);
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
   backdrop-filter: blur(2px);
 }
 
-.userRow {
-  margin-right: auto;
-  color: #0f172a;
-  text-shadow: 0 1px 2px rgba(255,255,255,.6);
+/* Info del usuario */
+.userInfo { 
+  text-align: left !important;
+  color: #eef2ff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.3);
+}
+.userName { font-weight: 700; color: #ffffff; }
+.userMail { font-size: 14px; color: #e5e7eb; }
+.userTitle { font-size: 13px; color: #e5e7eb; }
+.errorText { color: #fecaca; }
+
+/* (Opcional) compat: clase existente sin layout */
+.userRow {   
+  position: relative;      /* para estar sobre el overlay */
+  z-index: 1;
+
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr; /* col izq fija para usuario */
+  align-items: start;
+  gap: 8px;
+  width: 100%;
 }
 
-.userCluster {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;         
-}
-
-
-.userInfo { text-align: right; }
-.userName { font-weight: 600; color: white; }
-.userMail { font-size: 14px; color:   #eeeee4; }
-.userTitle { font-size: 13px; color: 
-#eeeee4; }
-.errorText { color: #ef4444; }
-
-/* Navegación responsive */
+/* ====== NAV (solo admin) ====== */
 .nav {
   display: flex;
-  flex-wrap: wrap;        /* ✅ permite varias filas en móviles */
+  flex-wrap: wrap;
   gap: 12px;
-  background: #2563eb;    /* tus colores */
+  background: #2563eb;
   padding: 12px 24px;
   border-radius: 12px;
   margin: 24px auto 32px;
@@ -95,24 +138,47 @@ body {
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: background .2s, color .2s, box-shadow .2s;
-  flex: 1 1 160px;        /* ✅ ocupa ancho fluido y se adapta */
-  min-width: 140px;       /* evita botones demasiado angostos */
+  transition: background .2s, color .2s, box-shadow .2s, transform .05s;
+  flex: 1 1 160px;
+  min-width: 140px;
 }
+.navBtn:active { transform: translateY(1px); }
 
-/* Área principal ocupa el resto de la pantalla */
+/* ====== MAIN ====== */
 .main {
-  flex: 1;                /* ✅ empuja el footer si luego agregas uno */
+  flex: 1;
   margin-bottom: 48px;
 }
 
-/* Utilidades */
+/* ====== Utilidades ====== */
 .center { text-align: center; margin-top: 48px; }
 .muted { color: #64748b; }
 
-/* Ajustes finos en pantallas pequeñas */
-@media (max-width: 480px) {
-  .userCard { padding: 16px; }
+/* ====== Responsive ====== */
+@media (max-width: 720px) {
+  .userCard {
+    padding: 16px 16px 20px;
+    grid-template-columns: 1fr; 
+    row-gap: 12px;
+    min-height: unset;
+  }
+
+  .brand {
+    grid-column: 1 / -1;     /* ocupa ambas columnas */
+    justify-self: center;
+    text-align: center;
+  }
+
+
+
+  .avatar { width: 52px; height: 52px; font-size: 22px; }
+
   .nav { padding: 10px 12px; gap: 10px; }
   .navBtn { flex-basis: 120px; min-width: 120px; font-size: 15px; }
+}
+
+/* ====== Asegurar ancho de secciones centradas ====== */
+.userCard, .nav, .main, .section {
+  width: min(1100px, 92vw);
+  margin-inline: auto;
 }
