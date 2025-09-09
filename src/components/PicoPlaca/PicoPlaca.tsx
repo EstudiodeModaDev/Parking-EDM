@@ -96,8 +96,8 @@ const PicoPlacaAdmin: React.FC = () => {
             <thead>
               <tr>
                 <th>Día</th>
-                <th>Moto (dígitos)</th>
-                <th>Carro (dígitos)</th>
+                <th>Moto</th>
+                <th>Carro</th>
                 <th>Acción</th>
               </tr>
             </thead>

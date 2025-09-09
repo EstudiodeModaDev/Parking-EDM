@@ -130,66 +130,65 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
   if (loading) return <div>Cargando ajustes…</div>;
 
   return (
-    <div className={styles.wrapper}>
-      {/* Card de parámetros de reservas */}
-      <div className={styles.card}>
-        <h2 className={styles.title}>Parámetros de Reservas</h2>
+  <div className={styles.wrapper}>
+    {/* Card única */}
+    <div className={styles.card}>
+      <h2 className={styles.title}>Parámetros de Reservas</h2>
 
-        {/* VisibleDays */}
-        <div className={styles.form}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="VisibleDays">Días máximos visibles</label>
-            <input
-              id="VisibleDays"
-              className={styles.input}
-              type="number"
-              min={1}
-              max={60}
-              value={form.VisibleDays}
-              onChange={onChangeNumber('VisibleDays', 1, 60)}
-            />
-            <small className={styles.hint}>
-              Cuántos días hacia adelante se muestran en “Disponibilidad”.
-            </small>
-            {errors.VisibleDays && <div className={styles.error}>{errors.VisibleDays}</div>}
-          </div>
-        </div>
-
-        {/* TyC */}
-        <div className={styles.form}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="TyC">Términos y condiciones</label>
-            <textarea
-              id="TyC"
-              className={styles.textarea}
-              value={form.TyC}
-              onChange={onChangeText('TyC')}
-              rows={12}
-              placeholder="Escribe los términos y condiciones…"
-            />
-            <small className={styles.hint}>
-              Términos y condiciones del parqueadero de Estudio de Moda.
-            </small>
-          </div>
-        </div>
-
-        {error && <div className={styles.error}>{error}</div>}
-        {okMsg && <div className={styles.ok}>{okMsg}</div>}
-
-        <div className={styles.actions}>
-          <button className={styles.button} onClick={save} disabled={saving || hasErrors}>
-            {saving ? 'Guardando…' : 'Guardar'}
-          </button>
+      {/* VisibleDays */}
+      <div className={styles.form}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="VisibleDays">Días máximos visibles</label>
+          <input
+            id="VisibleDays"
+            className={styles.input}
+            type="number"
+            min={1}
+            max={60}
+            value={form.VisibleDays}
+            onChange={onChangeNumber('VisibleDays', 1, 60)}
+          />
+          <small className={styles.hint}>
+            Cuántos días hacia adelante se muestran en “Disponibilidad”.
+          </small>
+          {errors.VisibleDays && <div className={styles.error}>{errors.VisibleDays}</div>}
         </div>
       </div>
 
-      {/* Card de Pico y Placa */}
-      <div className={styles.card}>
-        <h2 className={styles.title}>Pico y Placa</h2>
-        <PicoPlacaAdmin />
+      {/* TyC */}
+      <div className={styles.form}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="TyC">Términos y condiciones</label>
+          <textarea
+            id="TyC"
+            className={styles.textarea}
+            value={form.TyC}
+            onChange={onChangeText('TyC')}
+            rows={12}
+            placeholder="Escribe los términos y condiciones…"
+          />
+          <small className={styles.hint}>
+            Términos y condiciones del parqueadero de Estudio de Moda.
+          </small>
+        </div>
+      </div>
+
+      {/* Pico y Placa justo DEBAJO de TyC */}
+      <hr className={styles.divider} />
+      <h3 className={styles.subtitle}>Pico y Placa</h3>
+      <PicoPlacaAdmin />
+
+      {error && <div className={styles.error}>{error}</div>}
+      {okMsg && <div className={styles.ok}>{okMsg}</div>}
+
+      <div className={styles.actions}>
+        <button className={styles.button} onClick={save} disabled={saving || hasErrors}>
+          {saving ? 'Guardando…' : 'Guardar'}
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default AdminSettings;

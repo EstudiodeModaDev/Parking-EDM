@@ -20,6 +20,8 @@ import AdminSettings from './components/Admin-Settings/AdminSettings';
 import ColaboradoresInscritos from './components/Colaboradores-Permanentes/Colaboradores';
 import { ToastProvider } from './components/Toast/ToasProvider';
 import Reportes from './components/Reportes/reportes';
+import { UsuariosService } from './Services/UsuariosService';
+import type { IGetAllOptions } from './Models/CommonModels';
 
 //Pestañas del nav
 const NAVS = [
@@ -41,7 +43,7 @@ type User = {
 
 
 //Cambiar tipo de usuario
-/*export async function changeUser(userEmail: string) {
+export async function changeUser(userEmail: string) {
   const email = (userEmail ?? '').trim();
   if (!email) throw new Error('userEmail requerido');
 
@@ -72,7 +74,7 @@ type User = {
 
   return { ok, id, email, before: currentRol, after: nextRol };
 }
-*/
+
 
 export default function App() {
   const [selected, setSelected] = useState<NavKey>('celdas'); //Default Selected
@@ -237,6 +239,7 @@ export default function App() {
           ))}
         </nav>
 
+          <button onClick={() => changeUser(user?.mail!)}>Cambiar</button>
         {/* Contenido */}
         <main className="main">
           {selected === 'misreservas' && user?.mail && (
