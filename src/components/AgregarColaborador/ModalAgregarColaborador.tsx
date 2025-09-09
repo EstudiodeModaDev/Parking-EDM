@@ -75,11 +75,6 @@ const ModalAgregarColaborador: React.FC<Props> = ({
     }
   };
 
-  const buildWorkerLabel = (w: Worker) => {
-    const full = `${w.displayName}${w.mail ? ` · ${w.mail}` : ''}${w.jobTitle ? ` · ${w.jobTitle}` : ''}`;
-    return full.length > 60 ? full.slice(0, 57) + '…' : full;
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave?.(form);
