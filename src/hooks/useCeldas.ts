@@ -1,3 +1,4 @@
+// src/hooks/useCeldas.ts
 import * as React from 'react';
 import { ParkingSlotsService } from '../Services/ParkingSlotsService';
 import type { IGetAllOptions } from '../Models/CommonModels';
@@ -17,6 +18,10 @@ export type UseParkingSlotsReturn = {
 
   tipo: 'all' | 'Carro' | 'Moto';
   setTipo: (t: 'all' | 'Carro' | 'Moto') => void;
+
+  // ⬇️ NUEVO: filtro por itinerancia
+  itinerancia: 'all' | 'Empleado Fijo' | 'Empleado Itinerante' | 'Directivo';
+  setItinerancia: (i: 'all' | 'Empleado Fijo' | 'Empleado Itinerante' | 'Directivo') => void;
 
   pageSize: number;
   setPageSize: (n: number) => void;
@@ -51,6 +56,11 @@ export function useCeldas(): UseParkingSlotsReturn {
   // búsqueda (por Title), filtro por tipo y paginación
   const [search, setSearch] = React.useState('');
   const [tipo, setTipo] = React.useState<'all' | 'Carro' | 'Moto'>('all');
+
+  // ⬇️ NUEVO estado de filtro por itinerancia
+  const [itinerancia, setItinerancia] = React.useState<
+    'all' | 'Empleado Fijo' | 'Empleado Itinerante' | 'Directivo'
+  >('all');
 
   const [pageSize, _setPageSize] = React.useState(50);
   const [pageIndex, setPageIndex] = React.useState(0);
@@ -110,7 +120,7 @@ export function useCeldas(): UseParkingSlotsReturn {
           ...payloadBase,
         }));
 
-        // Ejecutamos todas las creaciones en paralelo y capturamos resultados
+        // Ejecutamos todas las creaciones en paralelo
         const results = await Promise.allSettled(
           payloads.map((p) => ParkingSlotsService.create(p))
         );
@@ -120,11 +130,9 @@ export function useCeldas(): UseParkingSlotsReturn {
           .filter(({ r }) => r.status === 'rejected');
 
         if (failed.length > 0) {
-          // Armamos mensaje con los títulos fallidos
           const failedTitles = failed.map(({ i }) => payloads[i].Title).join(', ');
           throw new Error(
-            `No se pudieron crear estas celdas: ${failedTitles}. ` +
-            `Verifica duplicados o permisos.`
+            `No se pudieron crear estas celdas: ${failedTitles}. Verifica duplicados o permisos.`
           );
         }
       } else {
@@ -147,6 +155,15 @@ export function useCeldas(): UseParkingSlotsReturn {
 
   // ==================================
 
+  const mapSlotToUI = (r: any): SlotUI => ({
+    Id: Number(r.ID ?? r.Id ?? r.id ?? 0),
+    Title: String(r.Title ?? r.title ?? ''),
+    TipoCelda: (r.TipoCelda ?? r.tipoCelda ?? '-') as any,
+    Activa: (r.Activa ?? r.estado ?? '-') as any,
+    Raw: r,
+    Itinerancia: r.Itinerancia
+  });
+
   const reloadAll = React.useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -167,6 +184,11 @@ export function useCeldas(): UseParkingSlotsReturn {
       if (tipo !== 'all') {
         filters.push(`TipoCelda eq '${tipo}'`);
       }
+      // ⬇️ NUEVO: filtro por Itinerancia
+      if (itinerancia !== 'all') {
+        filters.push(`Itinerancia eq '${itinerancia}'`);
+      }
+
       if (filters.length) (options as any).filter = filters.join(' and ');
 
       const res: any = await ParkingSlotsService.getAll(options);
@@ -189,7 +211,7 @@ export function useCeldas(): UseParkingSlotsReturn {
     } finally {
       setLoading(false);
     }
-  }, [search, pageSize, tipo]);
+  }, [search, pageSize, tipo, itinerancia]); // ⬅️ incluye itinerancia
 
   const setPageSize = React.useCallback((n: number) => {
     const size = Number.isFinite(n) && n > 0 ? Math.floor(n) : 20;
@@ -241,15 +263,6 @@ export function useCeldas(): UseParkingSlotsReturn {
     }
   }, []);
 
-  const mapSlotToUI = (r: any): SlotUI => ({
-    Id: Number(r.ID ?? r.Id ?? r.id ?? 0),
-    Title: String(r.Title ?? r.title ?? ''),
-    TipoCelda: (r.TipoCelda ?? r.tipoCelda ?? '-') as any,
-    Activa: (r.Activa ?? r.estado ?? '-') as any,
-    Raw: r,
-    Itinerancia: r.Itinerancia
-  });
-
   const norm = (s: unknown) => String(s ?? '').trim().toUpperCase();
 
   const getUnassignedSlots = React.useCallback(async (): Promise<SlotUI[]> => {
@@ -285,10 +298,11 @@ export function useCeldas(): UseParkingSlotsReturn {
     return () => { cancel = true; };
   }, [reloadAll]);
 
+  // recarga al cambiar tipo o itinerancia
   React.useEffect(() => {
     reloadAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipo]);
+  }, [tipo, itinerancia]);
 
   return {
     rows,
@@ -301,6 +315,10 @@ export function useCeldas(): UseParkingSlotsReturn {
     tipo,
     setTipo,
 
+    // ⬇️ NUEVO
+    itinerancia,
+    setItinerancia,
+
     pageSize,
     setPageSize,
     pageIndex,
@@ -312,7 +330,7 @@ export function useCeldas(): UseParkingSlotsReturn {
     toggleEstado,
     getUnassignedSlots,
 
-    // creación expuesta (nombres que esperabas)
+    // creación expuesta
     createOpen,
     createSaving,
     createError,

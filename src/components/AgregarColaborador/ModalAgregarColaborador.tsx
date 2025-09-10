@@ -115,21 +115,9 @@ const ModalAgregarColaborador: React.FC<Props> = ({
             <label className={styles.label}>Colaborador</label>
 
             <div className={styles.comboColab}>
-              <input
-                className={styles.input}
-                type="text"
-                placeholder="Buscar por nombre, correo o cargo…"
-                value={colabTerm}
-                onChange={(e) => setColabTerm(e.target.value)}
-                disabled={workersLoading}
-              />
+              <input className={styles.input} type="text" placeholder="Buscar por nombre, correo o cargo…" value={colabTerm} onChange={(e) => setColabTerm(e.target.value)} disabled={workersLoading}/>
 
-              <select
-                className={styles.select}
-                value={selectedWorkerId}
-                onChange={(e) => onSelectWorker(e.target.value)}
-                disabled={workersLoading}
-              >
+              <select className={styles.select} value={selectedWorkerId} onChange={(e) => onSelectWorker(e.target.value)} disabled={workersLoading}>
                 <option value="" disabled>
                   {workersLoading
                     ? 'Cargando colaboradores…'
@@ -148,15 +136,14 @@ const ModalAgregarColaborador: React.FC<Props> = ({
             </div>
 
             <small className={styles.hint}>
-              Al seleccionar un colaborador, llenamos automáticamente Nombre y Correo (puedes editarlos).
+              Al seleccionar un colaborador, se llena automáticamente Nombre y Correo (puedes editarlos).
             </small>
           </fieldset>
 
           {/* === Datos editables/confirmables === */}
           <label className={styles.label}>
             Nombre
-            <input
-              className={styles.input}
+            <input className={styles.input}
               type="text"
               value={form.nombre}
               onChange={(e) => setForm(f => ({ ...f, nombre: e.target.value }))}
@@ -175,6 +162,7 @@ const ModalAgregarColaborador: React.FC<Props> = ({
             />
           </label>
 
+          <div className={styles.row2}>
           <label className={styles.label}>
             Tipo de vehículo
             <select
@@ -198,36 +186,7 @@ const ModalAgregarColaborador: React.FC<Props> = ({
               required
             />
           </label>
-
-          {/* Si luego activas celdas sin asignar, reusa tu bloque anterior:
-          <label className={styles.label}>
-            Celda (sin asignar)
-            <select
-              className={styles.select}
-              value={form.codigoCelda}
-              onChange={(e) => {
-                const codigo = e.target.value;
-                const slot = slots.find(s => s.Title === codigo);
-                setForm(f => ({
-                  ...f,
-                  codigoCelda: codigo,
-                  IdSpot: slot ? String(slot.Id) : '',
-                }));
-              }}
-              required
-              disabled={slotsLoading}
-            >
-              <option value="" disabled>
-                {slotsLoading ? 'Cargando…' : 'Selecciona una celda'}
-              </option>
-              {slots.map(s => (
-                <option key={s.Id} value={s.Title}>
-                  {s.Title}{s.TipoCelda ? ` · ${s.TipoCelda}` : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-          */}
+        </div>
 
           <div className={styles.actions}>
             <button type="button" className={styles.btnGhost} onClick={onClose}>Cancelar</button>

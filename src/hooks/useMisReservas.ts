@@ -86,15 +86,21 @@ export function useMisReservas(userMail: string, isAdmin = false): UseMisReserva
   const [filterMode, setFilterMode] = React.useState<FilterMode>('upcoming-active');
 
   const mailSafe = (userMail ?? '').replace(/'/g, "''");
-  const today = new Date().toISOString().slice(0, 10);
+  const todayLocal = (() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  })();
 
   const applyClientFilter = React.useCallback((source: ReservationUI[]) => {
     let data = source;
 
     if (filterMode === 'upcoming-active') {
-      data = source.filter(r => r.Status === 'Activa' && r.Date >= today);
+      data = source.filter(r => r.Status === 'Activa' && r.Date >= todayLocal);
     } else if (filterMode === 'history') {
-      data = source.filter(r => r.Date < today );
+      data = source.filter(r => r.Status != 'Activa' );
     }
 
     setFilteredRows(data);
@@ -103,7 +109,7 @@ export function useMisReservas(userMail: string, isAdmin = false): UseMisReserva
     setRows(firstSlice);
     setPageIndex(0);
     setHasNext(data.length > pageSize);
-  }, [filterMode, pageSize, today]);
+  }, [filterMode, pageSize]);
 
   const fetchAllForRange = React.useCallback(async () => {
     if (!isAdmin && !mailSafe) {
@@ -123,15 +129,20 @@ export function useMisReservas(userMail: string, isAdmin = false): UseMisReserva
 
     try {
       const MAX_FETCH = 2000;
+      let parts: string[] = []
 
-      // construimos el filtro
-      const parts: string[] = [
-        `Date ge '${range.from}'`,
-        `Date le '${range.to}'`,
-      ];
+
       if (!isAdmin) {
         parts.unshift(`Title eq '${mailSafe}'`);
       }
+
+      if (filterMode === 'upcoming-active') {
+        parts.push(`Date ge '${todayLocal}'`);
+      } else {
+          parts.push(`Date ge '${range.from}'`);
+          parts.push(`Date le '${range.to}'`);
+      }
+
       const filter = parts.join(' and ');
 
       const options: IGetAllOptions = {
@@ -247,6 +258,46 @@ export function useMisReservas(userMail: string, isAdmin = false): UseMisReserva
     return () => { cancel = true; };
   }, [fetchAllForRange]);
 
+  //Recarga cada 5 minutos
+  React.useEffect(() => {
+    const T = 5 * 60 * 1000; // 5 minutos
+    let id: number | null = null;
+
+    const tick = () => {
+      // no uses await aquí; dispara y listo
+      fetchAllForRange();
+    };
+
+    const start = () => {
+      if (id == null) id = window.setInterval(tick, T);
+    };
+
+    const stop = () => {
+      if (id != null) {
+        window.clearInterval(id);
+        id = null;
+      }
+    };
+
+    // Arranca sólo si la pestaña está visible
+    if (!document.hidden) start();
+
+    const onVis = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        tick();  // refresca al volver a la pestaña
+        start();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVis);
+
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [fetchAllForRange]);
   return {
     rows,
     loading,

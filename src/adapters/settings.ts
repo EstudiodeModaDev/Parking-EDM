@@ -5,7 +5,11 @@ import type { IOperationResult } from '@pa-client/power-code-sdk/lib/';
 // Tu modelo de UI (lo que el componente necesita)
 export type SettingsForm = {
   VisibleDays: number;
-  TyC: string
+  TyC: string;
+  InicioManana: number,
+  FinalManana: number,
+  InicioTarde: number,
+  FinalTarde: number
 };
 
 // Lo que el componente recibirá de "getOne": campos + ID
@@ -32,23 +36,33 @@ export function makeSettingsPortSingle(): SettingsPort {
         // crea con los nombres REALES de la fuente
         const created = await SettingsService.create({
           VisibleDays: 7,
-          MaxAdvanceHours: 72,
-          MaxUserTurns: 3,
-          TerminosyCondiciones: ""   // <- importante
+          TerminosyCondiciones: "",
+          InicioHorarioMa_x00f1_ana: 7, //Inicio horario mañana
+          FinalMa_x00f1_ana: 12, //Final horario mañana
+          InicioTarde: 12,
+          FinalTarde: 18
         } as any);
         const rec = unwrap(created) as any;
         return {
           ID: String(rec.ID),
           VisibleDays: Number(rec.VisibleDays ?? 7),
-          TyC: String(rec.TerminosyCondiciones ?? "")
+          TyC: String(rec.TerminosyCondiciones ?? ""),
+          InicioManana: Number(rec.InicioHorarioMa_x00f1_ana),
+          FinalManana: Number(rec.FinalMa_x00f1_ana),
+          InicioTarde: Number(rec.InicioTarde),
+          FinalTarde: Number(rec.FinalTarde),
         };
       }
 
       const rec = list[0];
       return {
-        ID: String(rec.ID),
-        VisibleDays: Number(rec.VisibleDays ?? 7),
-        TyC: String(rec.TerminosyCondiciones ?? "")
+          ID: String(rec.ID),
+          VisibleDays: Number(rec.VisibleDays ?? 7),
+          TyC: String(rec.TerminosyCondiciones ?? ""),
+          InicioManana: Number(rec.InicioHorarioMa_x00f1_ana),
+          FinalManana: Number(rec.FinalMa_x00f1_ana),
+          InicioTarde: Number(rec.InicioTarde),
+          FinalTarde: Number(rec.FinalTarde),
       };
     },
 
@@ -57,6 +71,10 @@ export function makeSettingsPortSingle(): SettingsPort {
       const payload: any = {};
       if (changes.VisibleDays !== undefined) payload.VisibleDays = changes.VisibleDays;
       if (changes.TyC !== undefined) payload.TerminosyCondiciones = changes.TyC;
+      if (changes.InicioManana !== undefined) payload.InicioHorarioMa_x00f1_ana = changes.InicioManana;
+      if (changes.FinalManana !== undefined) payload. FinalMa_x00f1_ana = changes.FinalManana;
+      if (changes.InicioTarde !== undefined) payload.InicioTarde = changes.InicioTarde;
+      if (changes.FinalTarde !== undefined) payload.FinalTarde = changes.FinalTarde;
 
       const res = await SettingsService.update(id, payload);
       unwrap(res);

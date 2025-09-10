@@ -3,7 +3,7 @@ import styles from './AdminSettings.module.css';
 import type { SettingsPort, SettingsForm, SettingsRecord } from '../../adapters/settings';
 
 
-const DEFAULTS: SettingsForm = { VisibleDays: 3, TyC: "" };
+const DEFAULTS: SettingsForm = { VisibleDays: 3, TyC: "" , InicioManana: 7, InicioTarde: 12, FinalManana: 12, FinalTarde: 18};
 
 // Clamp genérico para números
 const clamp = (v: number, min: number, max: number) =>
@@ -22,6 +22,10 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
   const [form, setForm] = React.useState<SettingsForm>({
     VisibleDays: initial?.VisibleDays ?? DEFAULTS.VisibleDays,
     TyC: s(initial?.TyC ?? DEFAULTS.TyC),
+    InicioManana: initial?.InicioManana ?? DEFAULTS.InicioManana,
+    FinalManana: initial?.FinalManana ?? DEFAULTS.FinalManana,
+    InicioTarde: initial?.InicioTarde ?? DEFAULTS.InicioTarde,
+    FinalTarde: initial?.FinalTarde ?? DEFAULTS.FinalTarde
   });
 
   // Estado base (lo que viene de backend)
@@ -50,6 +54,10 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
         setForm(prev => ({
           VisibleDays: rec.VisibleDays ?? (prev.VisibleDays ?? DEFAULTS.VisibleDays),
           TyC: prev.TyC && prev.TyC !== DEFAULTS.TyC ? prev.TyC : s(rec.TyC ?? DEFAULTS.TyC),
+          InicioManana: rec.InicioManana ?? (prev.InicioManana ?? DEFAULTS.InicioManana),
+          FinalManana: rec.FinalManana ?? (prev.FinalManana ?? DEFAULTS.FinalManana),
+          InicioTarde: rec.InicioTarde ?? (prev.InicioTarde ?? DEFAULTS.InicioTarde),
+          FinalTarde: rec.FinalTarde ?? (prev.FinalTarde ?? DEFAULTS.FinalTarde),
         }));
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? 'No se pudieron cargar los ajustes.');
@@ -111,6 +119,10 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
       const changes: Partial<SettingsForm> = {};
       if (form.VisibleDays !== prev.VisibleDays) changes.VisibleDays = form.VisibleDays;
       if (form.TyC !== prev.TyC) changes.TyC = form.TyC;
+      if (form.InicioManana !== prev.InicioManana) changes.InicioManana = form.InicioManana;
+      if (form.FinalManana !== prev.FinalManana) changes.FinalManana = form.FinalManana;
+      if (form.InicioTarde !== prev.InicioTarde) changes.InicioTarde = form.InicioTarde;
+      if (form.FinalTarde !== prev.FinalTarde) changes.FinalTarde = form.FinalTarde;
 
       if (Object.keys(changes).length === 0) {
         setOkMsg('No hay cambios por guardar.');
@@ -154,6 +166,36 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
             <span title="Términos y condiciones del parqueadero de Estudio de Moda." style={{cursor:'help'}}>ℹ️</span>
           </label>
           <textarea id="TyC" className={styles.textarea} value={form.TyC} onChange={onChangeText('TyC')} rows={12} placeholder="Escribe los términos y condiciones…"/>
+        </div>
+      </div>
+
+      <div className={styles.form}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="Horarios">Horarios Parqueaderos
+            <span title="A que hora (Exacta) inician y finalizan los turnos del parqueadero" style={{cursor:'help'}}>ℹ️</span>
+          </label>
+          <div className={styles.horarioswrap}>
+            <label className={styles.horItem} htmlFor="InicioManana">
+              <span className={styles.horTitle}>Inicio mañana</span>
+              <input id="InicioManana" className={styles.horarios} type="number" value={form.InicioManana} onChange={onChangeNumber('InicioManana', 1, 12)} min={1} max={12}/>
+            </label>
+
+            <label className={styles.horItem} htmlFor="FinalManana">
+              <span className={styles.horTitle}>Final mañana</span>
+              <input id="FinalManana" className={styles.horarios} type="number" value={form.FinalManana} onChange={onChangeNumber('FinalManana', 1, 12)} min={1} max={12}/>
+            </label>
+
+            <label className={styles.horItem} htmlFor="InicioTarde">
+              <span className={styles.horTitle}>Inicio Tarde</span>
+              <input id="InicioTarde" className={styles.horarios} type="number" value={form.InicioTarde} onChange={onChangeNumber('InicioTarde', 12, 23)} min={12} max={23}/>
+            </label>
+
+            <label className={styles.horItem} htmlFor="FinalTarde">
+              <span className={styles.horTitle}>Final Tarde</span>
+              <input id="FinalTarde" className={styles.horarios} type="number" value={form.FinalTarde} onChange={onChangeNumber('FinalTarde', 12, 23)} min={12} max={23}/>
+            </label>
+          </div>
+
         </div>
       </div>
 

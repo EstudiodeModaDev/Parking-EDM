@@ -6,6 +6,8 @@ import { statusColor } from '../../utils/status';
 
 type Props = { userMail: string, isAdmin: boolean };
 
+
+
 const MisReservas: React.FC<Props> = ({ userMail, isAdmin = false}) => {
   const {
     rows, loading, error,
@@ -90,14 +92,12 @@ const MisReservas: React.FC<Props> = ({ userMail, isAdmin = false}) => {
                         </span>
                       </td>
                       <td className={styles.td}>
-                        <button
-                          className={styles.cancelBtn}
-                          onClick={() => cancelReservation(r.Id)}
-                          disabled={loading}
-                          title="Cancelar esta reserva"
-                        >
-                          Cancelar
-                        </button>
+                        {r.Status === 'Activa' ? (<button className={styles.cancelBtn} onClick={() => cancelReservation(r.Id)} disabled={loading} title="Cancelar esta reserva">
+                                                      Cancelar
+                                                  </button>):
+                                                  <p>No hay acciones disponibles</p>
+                        }
+
                       </td>
                     </tr>
                   ))}
