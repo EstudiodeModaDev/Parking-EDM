@@ -255,3 +255,71 @@
 .btnLink:hover { text-decoration: underline; }
 .btnLink:active { transform: translateY(1px); }
 .btnLink:disabled { opacity: .6; cursor: not-allowed; }
+
+/*Capacidad */
+.capacityCard {
+  display: grid;
+  gap: 12px;
+  margin: 10px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;          /* slate-200 */
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(30,41,59,0.06);
+}
+
+.capacityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #0f172a;                       /* slate-900 */
+}
+
+.turnPill {
+  font-size: 12px;
+  font-weight: 700;
+  background: #eef2ff;                  /* indigo-50 */
+  color: #3730a3;                        /* indigo-800 */
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.capacityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+}
+@media (max-width: 640px) {
+  .capacityGrid { grid-template-columns: 1fr; }
+}
+
+.capacityItem {
+  border: 1px solid #e5e7eb;           /* gray-200 */
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;                 /* slate-50 */
+}
+
+.capacityLabel {
+  font-size: 13px;
+  color: #475569;                       /* slate-600 */
+  margin-bottom: 4px;
+}
+
+.capacityValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;                       /* gray-900 */
+}
+
+.capacityTotal {
+  font-size: 14px;
+  color: #64748b;                       /* slate-500 */
+  margin-left: 6px;
+}
+
+.capacityNote {
+  font-size: 12px;
+  color: #6b7280;                       /* gray-500 */
+  margin-top: 6px;
+}

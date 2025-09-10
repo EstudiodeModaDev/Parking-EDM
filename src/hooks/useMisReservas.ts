@@ -4,13 +4,16 @@ import { ReservationsService } from '../Services/ReservationsService';
 import type { IGetAllOptions } from '../Models/CommonModels';
 import { last30Days } from '../utils/date';
 import type { ReservationUI } from '../adapters/reservations';
+import type { FilterMode } from '../adapters/misReservas';
 
+//Normalizar resultados del api
 const normalizeResult = (res: any) => {
   const ok = ('ok' in res) ? res.ok : (('success' in res) ? res.success : true);
   const data = ('value' in res) ? res.value : (('data' in res) ? res.data : res);
   return { ok, data, errorMessage: res?.errorMessage };
 };
 
+//Normalizar para mostrar
 const mapToUI = (r: any): ReservationUI => {
   const dateStr = String(r.Date ?? r.date ?? r.Fecha ?? r.fecha ?? '').slice(0, 10);
   const spotId = Number(r['SpotId#Id'] ?? r.SpotId?.Id ?? r.SpotId ?? 0);
@@ -39,8 +42,7 @@ const mapToUI = (r: any): ReservationUI => {
   return ui;
 };
 
-type FilterMode = 'upcoming-active' | 'history';
-
+//Return del hook
 export type UseMisReservasReturn = {
   rows: ReservationUI[];
   loading: boolean;
@@ -65,6 +67,7 @@ export type UseMisReservasReturn = {
   setFilterMode: (m: FilterMode) => void;
 };
 
+
 export function useMisReservas(userMail: string, isAdmin = false): UseMisReservasReturn {
   const [allRows, setAllRows] = React.useState<ReservationUI[]>([]);
   const [filteredRows, setFilteredRows] = React.useState<ReservationUI[]>([]);
@@ -80,7 +83,6 @@ export function useMisReservas(userMail: string, isAdmin = false): UseMisReserva
   const [pageIndex, setPageIndex] = React.useState(0);
   const [hasNext, setHasNext] = React.useState(false);
 
-  // Si es admin, por defecto muestro "all", si no, "upcoming-active"
   const [filterMode, setFilterMode] = React.useState<FilterMode>('upcoming-active');
 
   const mailSafe = (userMail ?? '').replace(/'/g, "''");

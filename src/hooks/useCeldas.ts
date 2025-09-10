@@ -52,7 +52,7 @@ export function useCeldas(): UseParkingSlotsReturn {
   const [search, setSearch] = React.useState('');
   const [tipo, setTipo] = React.useState<'all' | 'Carro' | 'Moto'>('all');
 
-  const [pageSize, _setPageSize] = React.useState(20);
+  const [pageSize, _setPageSize] = React.useState(50);
   const [pageIndex, setPageIndex] = React.useState(0);
   const [hasNext, setHasNext] = React.useState(false);
 

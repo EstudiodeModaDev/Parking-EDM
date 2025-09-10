@@ -7,7 +7,7 @@ import { todayISO } from '../utils/date';
 import { normalizeResult } from './utils';
 
 
-const MOTO_CAPACITY = 4;
+const MOTO_CAPACITY = 1;
 
 
 export function useReporteria() {
@@ -96,6 +96,8 @@ export function useReporteria() {
     setRows(filtered);
   }, [filters]);
 
+  
+
   // Aforo: unidades equivalentes / capacidad
   React.useEffect(() => {
     if (!capacidadTotal || capacidadTotal <= 0) {
@@ -106,7 +108,7 @@ export function useReporteria() {
     for (const r of rows) {
       const tv = String(r.TipoVehiculo).toLowerCase();
       if (tv === 'carro') unidades += 1;
-      else if (tv === 'moto') unidades += 1 / MOTO_CAPACITY;
+      else if (tv === 'moto') unidades += 1
       else unidades += 1;
     }
     const pct = Math.min(100, Math.round(   (unidades / capacidadTotal) * 100));

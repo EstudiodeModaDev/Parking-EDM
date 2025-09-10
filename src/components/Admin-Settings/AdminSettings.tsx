@@ -2,6 +2,7 @@ import * as React from 'react';
 import styles from './AdminSettings.module.css';
 import type { SettingsPort, SettingsForm, SettingsRecord } from '../../adapters/settings';
 
+
 const DEFAULTS: SettingsForm = { VisibleDays: 3, TyC: "" };
 
 // Clamp genérico para números
@@ -62,6 +63,7 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
 
     return () => { cancelled = true; };
   }, []); // ← sin deps: carga una sola vez
+
 
   // Validaciones
   const errors = React.useMemo(() => {
@@ -137,37 +139,21 @@ const AdminSettings: React.FC<Props> = ({ port, initial }) => {
       {/* VisibleDays */}
       <div className={styles.form}>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="VisibleDays">Días máximos visibles</label>
-          <input
-            id="VisibleDays"
-            className={styles.input}
-            type="number"
-            min={1}
-            max={60}
-            value={form.VisibleDays}
-            onChange={onChangeNumber('VisibleDays', 1, 60)}
-          />
-          <small className={styles.hint}>
-            Cuántos días hacia adelante se muestran en “Disponibilidad”.
-          </small>
+          
+          <label className={styles.label} htmlFor="VisibleDays">Días máximos visibles
+              <span title="Con cuanto tiempo de antelación permite reservar la aplicación" style={{cursor:'help'}}>ℹ️</span>
+          </label>
+          <input id="VisibleDays" className={styles.input} type="number" min={1} max={60} value={form.VisibleDays} onChange={onChangeNumber('VisibleDays', 1, 60)} />
           {errors.VisibleDays && <div className={styles.error}>{errors.VisibleDays}</div>}
         </div>
       </div>
 
       <div className={styles.form}>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="TyC">Términos y condiciones</label>
-          <textarea
-            id="TyC"
-            className={styles.textarea}
-            value={form.TyC}
-            onChange={onChangeText('TyC')}
-            rows={12}
-            placeholder="Escribe los términos y condiciones…"
-          />
-          <small className={styles.hint}>
-            Términos y condiciones del parqueadero de Estudio de Moda.
-          </small>
+          <label className={styles.label} htmlFor="TyC">Términos y condiciones
+            <span title="Términos y condiciones del parqueadero de Estudio de Moda." style={{cursor:'help'}}>ℹ️</span>
+          </label>
+          <textarea id="TyC" className={styles.textarea} value={form.TyC} onChange={onChangeText('TyC')} rows={12} placeholder="Escribe los términos y condiciones…"/>
         </div>
       </div>
 

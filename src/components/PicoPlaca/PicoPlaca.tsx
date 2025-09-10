@@ -2,34 +2,10 @@
 import * as React from 'react';
 import styles from './PicoPlacaAdmin.module.css';
 import { makePicoPlacaPort, type PicoPlacaRow } from '../../adapters/picoPlacaPort';
+import { dayLabel, isValidPattern } from '../../hooks/utils';
+import { NotifyPicoPlaca } from '../../hooks/usePicoPlaca';
 
 const port = makePicoPlacaPort();
-
-const DAY_LABEL: Record<number, string> = {
-  1: 'Lunes',
-  2: 'Martes',
-  3: 'Miércoles',
-  4: 'Jueves',
-  5: 'Viernes',
-  6: 'Sábado',
-  7: 'Domingo',
-};
-
-const dayLabel = (title: string) => {
-  const n = Number(title);
-  return Number.isFinite(n) && DAY_LABEL[n] ? DAY_LABEL[n] : `Día ${title}`;
-};
-
-// Valida formato: dígitos 0-9 separados por comas, espacios opcionales. Ej: "6,9" | "0,2,4,6,8"
-const VALID_PLATE_PATTERN = /^(\s*[0-9]\s*(,\s*[0-9]\s*)*)?$/;
-
-function normalize(v: string) {
-  return v.replace(/\s+/g, '').replace(/\./g, ','); // quita espacios; cambia "." por ","
-}
-
-function isValidPattern(v: string) {
-  return VALID_PLATE_PATTERN.test(v);
-}
 
 const PicoPlacaAdmin: React.FC = () => {
   const [rows, setRows] = React.useState<PicoPlacaRow[]>([]);
@@ -51,15 +27,17 @@ const PicoPlacaAdmin: React.FC = () => {
     })();
   }, []);
 
+  //Editar celda
   const editCell = (id: string, key: 'Moto' | 'Carro', value: string) => {
     setRows(prev => prev.map(r => (r.ID === id ? { ...r, [key]: value } : r)));
     setOk(null);
     setError(null);
   };
 
+  //Guardar fila
   const saveRow = async (row: PicoPlacaRow) => {
-    const Moto = normalize(row.Moto);
-    const Carro = normalize(row.Carro);
+    const Moto = row.Moto;
+    const Carro = row.Carro;
 
     // Validaciones
     if (!isValidPattern(Moto) || !isValidPattern(Carro)) {
@@ -103,8 +81,8 @@ const PicoPlacaAdmin: React.FC = () => {
             </thead>
             <tbody>
               {rows.map(r => {
-                const motoBad = !isValidPattern(normalize(r.Moto));
-                const carroBad = !isValidPattern(normalize(r.Carro));
+                const motoBad = !isValidPattern(r.Moto);
+                const carroBad = !isValidPattern(r.Carro);
                 return (
                   <tr key={r.ID}>
                     <td className={styles.day}>{dayLabel(r.Title)}</td>
@@ -144,7 +122,11 @@ const PicoPlacaAdmin: React.FC = () => {
         <p className={styles.hint}>
           Formato: dígitos 0–9 separados por comas. Ejemplos: <code>6,9</code>, <code>0,2,4,6,8</code>.
         </p>
+
+        <button onClick=
+        {NotifyPicoPlaca}>Notificar cambio de pico y placa</button>
       </div>
+
     </section>
   );
 };

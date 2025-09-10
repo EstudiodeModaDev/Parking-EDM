@@ -141,10 +141,10 @@
 /* ====== Top Bar ====== */
 .topBar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;   /* ⬅ apilar en columna */
+  align-items: center;      /* ⬅ centrar horizontalmente */
   gap: 16px;
-  flex-wrap: wrap;            /* Se adapta a móvil */
+  flex-wrap: wrap;
   margin-bottom: 16px;
 
 }

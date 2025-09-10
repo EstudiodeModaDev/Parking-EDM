@@ -10,7 +10,6 @@ export interface ParkingSlots {
   Activa?: string;
   Notas?: string;
   Moto?: string;
-  Itinerancia: string;
   OData__ColorTag?: string;
   ComplianceAssetId?: string;
   Modified?: string;

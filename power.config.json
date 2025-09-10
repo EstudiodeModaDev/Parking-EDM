@@ -65,6 +65,16 @@
       "authenticationType": null,
       "sharedConnectionId": null,
       "dataSets": {}
+    },
+    "1bbd86de-f4c9-40a2-87d1-614a634aa8ef": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_approvals",
+      "displayName": "Standard approvals",
+      "dataSources": [
+        "approvals"
+      ],
+      "authenticationType": null,
+      "sharedConnectionId": null,
+      "dataSets": {}
     }
   },
   "databaseReferences": {}

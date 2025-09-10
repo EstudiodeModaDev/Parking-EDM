@@ -1,14 +1,9 @@
-
 import * as React from 'react';
 import styles from './AdminCells.module.css';
 import { useCeldas } from '../../hooks/useCeldas';
 import { Modal } from '../Modals/modals';
 import SlotDetailsModal from './SlotDetailsModal';
-
-import {
-  fetchAssignee,
-  type Assignee,
-} from '../../hooks/AsignarCeldas';
+import { fetchAssignee, type Assignee } from '../../hooks/AsignarCeldas';
 import { ReservationsService } from '../../Services/ReservationsService';
 import type { SlotUI } from '../../adapters/cells';
 import { useWorkers } from '../../hooks/useWorkers';
@@ -21,6 +16,7 @@ const PM_END   = { h: 19, m: 0 };   // 19:00
 
 type TurnFlags = { Manana?: boolean; Tarde?: boolean; PorManana?: string; PorTarde?: string };
 
+// Verificar si está dentro del rango
 function isNowInRange(start: {h:number;m:number}, end: {h:number;m:number}) {
   const now = new Date();
   const mins = now.getHours() * 60 + now.getMinutes();
@@ -29,6 +25,7 @@ function isNowInRange(start: {h:number;m:number}, end: {h:number;m:number}) {
   return mins >= a && mins <= b;
 }
 
+// Turno actual
 function getCurrentTurn(): 'Manana' | 'Tarde' | null {
   if (isNowInRange(AM_START, AM_END)) return 'Manana';
   if (isNowInRange(PM_START, PM_END)) return 'Tarde';
@@ -38,10 +35,10 @@ function getCurrentTurn(): 'Manana' | 'Tarde' | null {
 const ClientList: React.FC = () => {
   const {
     rows, loading, error, search, tipo, pageSize, pageIndex, hasNext, createOpen, createSaving, createError, createForm, canCreate,
-    setSearch, setTipo, setPageSize, nextPage, prevPage, reloadAll, setCreateForm, openModal, closeModal, create, 
+    setSearch, setTipo, setPageSize, nextPage, prevPage, reloadAll, setCreateForm, openModal, closeModal, create,
   } = useCeldas();
 
-    const { workers, loading: workersLoading} = useWorkers();
+  const { workers, loading: workersLoading } = useWorkers();
 
   const [open, setOpen] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<number | null>(null);
@@ -54,20 +51,19 @@ const ClientList: React.FC = () => {
   // Buscador del picker
   const [results, setResults] = React.useState<Assignee[]>([]);
 
-  const [selected, setSelected] = React.useState<SlotUI | null>(null);
+  console.log(assignLoading, assignError, assignee, results)
 
-  console.log(results, assignError, assignLoading, assignee)
+  const [selected, setSelected] = React.useState<SlotUI | null>(null);
 
   // Ocupación por turno para HOY: { [slotId]: { Manana?: true, Tarde?: true } }
   const [occByTurn, setOccByTurn] = React.useState<Record<number, TurnFlags>>({});
   const [occLoading, setOccLoading] = React.useState(false);
 
-
   const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') { e.preventDefault(); reloadAll(); }
   };
 
-  const openDetails = (row: SlotUI) => {setSelected(row); setOpen(true);};
+  const openDetails = (row: SlotUI) => { setSelected(row); setOpen(true); setSelectedId(row.Id); };
   const closeDetails = () => {
     setOpen(false);
     setSelectedId(null);
@@ -76,13 +72,13 @@ const ClientList: React.FC = () => {
     setResults([]);
   };
 
-  // Cargar ocupación de hoy (no canceladas) y mapear por turno
+  // Cargar ocupación de HOY (no canceladas) y mapear por turno
   const loadTodayOccupancy = React.useCallback(async () => {
     try {
       setOccLoading(true);
       const todayISO = new Date().toISOString().slice(0, 10);
       const res: any = await ReservationsService.getAll({
-        select: ['SpotId','Date','Status','Turn', 'NombreUsuario'] as any,
+        select: ['SpotId','Date','Status','Turn','NombreUsuario'] as any,
         top: 5000 as any,
         filter: `Date eq '${todayISO}' and (Status ne 'Cancelada')`,
       } as any);
@@ -97,13 +93,18 @@ const ClientList: React.FC = () => {
         const turnRaw = String(r?.Turn ?? '').toLowerCase();
         if (!map[spot]) map[spot] = {};
 
-        if (turnRaw === 'manana' || turnRaw === 'mañana'){ map[spot].Manana = true; map[spot].PorManana = r.NombreUsuario}
-        else if (turnRaw === 'tarde'){map[spot].Tarde = true; map[spot].PorTarde = r.NombreUsuario}
-        else { // por si guardaste 'Dia'
+        if (turnRaw === 'manana' || turnRaw === 'mañana') {
+          map[spot].Manana = true;
+          map[spot].PorManana = r?.NombreUsuario ?? '';
+        } else if (turnRaw === 'tarde') {
+          map[spot].Tarde = true;
+          map[spot].PorTarde = r?.NombreUsuario ?? '';
+        } else {
+          // por si guardaste 'Dia'
           map[spot].Manana = true;
           map[spot].Tarde = true;
-          map[spot].PorManana = r.NombreUsuario
-          map[spot].PorTarde = r.NombreUsuario
+          map[spot].PorManana = r?.NombreUsuario ?? '';
+          map[spot].PorTarde = r?.NombreUsuario ?? '';
         }
       }
       setOccByTurn(map);
@@ -136,6 +137,37 @@ const ClientList: React.FC = () => {
     return () => { cancel = true; };
   }, [open, selectedId]);
 
+  // ---- Tarjeta de capacidad "hoy" (1 moto = 1 celda) usando turno actual ----
+  const capacidadAhora = React.useMemo(() => {
+    const activas = rows.filter(r => r.Activa === 'Activa');
+    const current = getCurrentTurn(); // 'Manana' | 'Tarde' | null
+
+    const isReservedNow = (slotId: number) => {
+      const f = occByTurn[slotId] || {};
+      if (!current) {
+        // fuera de horario: ocupada si tuvo reserva en cualquiera de los turnos de hoy
+        return !!(f.Manana || f.Tarde);
+      }
+      return current === 'Manana' ? !!f.Manana : !!f.Tarde;
+    };
+
+    // Carros
+    const totalCarros = activas.filter(s => s.TipoCelda === 'Carro').length;
+    const ocupadosCarros = activas.filter(s => s.TipoCelda === 'Carro' && isReservedNow(s.Id)).length;
+    const libresCarros = Math.max(0, totalCarros - ocupadosCarros);
+
+    // Motos (1 slot = 1 moto)
+    const totalMotos = activas.filter(s => s.TipoCelda === 'Moto').length;
+    const ocupadosMotos = activas.filter(s => s.TipoCelda === 'Moto' && isReservedNow(s.Id)).length;
+    const libresMotos = Math.max(0, totalMotos - ocupadosMotos);
+
+    return {
+      turno: current, // 'Manana' | 'Tarde' | null
+      totalCarros, libresCarros,
+      totalMotos, libresMotos
+    };
+  }, [rows, occByTurn]);
+
   // Render de badge por turno
   const renderTurnBadge = (
     activa: boolean,
@@ -154,7 +186,7 @@ const ClientList: React.FC = () => {
     } else { cls = `${styles.badge} ${styles.badgeFree}`; text = 'Disponible'; }
 
     return <span className={cls}>
-      <span className={styles.badgeLine}>{turnLabel}: {text}  </span>
+      <span className={styles.badgeLine}>{turnLabel}: {text}</span>
       {who && <small className={styles.badgeWho}>{who}</small>}
     </span>
   };
@@ -162,6 +194,39 @@ const ClientList: React.FC = () => {
   return (
     <section className={styles.wrapper}>
       <h3 className={styles.h3}>Listado de celdas</h3>
+
+      {/* Tarjeta de capacidad hoy */}
+      <div className={styles.capacityCard}>
+        <div className={styles.capacityHeader}>
+          <strong>Capacidad hoy</strong>
+          <span className={styles.turnPill}>
+            {capacidadAhora.turno === 'Manana'
+              ? 'Turno actual: AM'
+              : capacidadAhora.turno === 'Tarde'
+              ? 'Turno actual: PM'
+              : 'Fuera de horario'}
+          </span>
+        </div>
+
+        <div className={styles.capacityGrid}>
+          <div className={styles.capacityItem}>
+            <div className={styles.capacityLabel}>Carros disponibles</div>
+            <div className={styles.capacityValue}>
+              {capacidadAhora.libresCarros}
+              <span className={styles.capacityTotal}>/ {capacidadAhora.totalCarros}</span>
+            </div>
+          </div>
+
+          <div className={styles.capacityItem}>
+            <div className={styles.capacityLabel}>Motos disponibles</div>
+            <div className={styles.capacityValue}>
+              {capacidadAhora.libresMotos}
+              <span className={styles.capacityTotal}>/ {capacidadAhora.totalMotos}</span>
+            </div>
+            <div className={styles.capacityNote}>(motos cuentan 1 por celda)</div>
+          </div>
+        </div>
+      </div>
 
       {/* Filtros */}
       <div className={styles.filtersBar}>
@@ -195,7 +260,7 @@ const ClientList: React.FC = () => {
           <select
             className={styles.pageSizeSelect}
             value={pageSize}
-            onChange={(e) => setPageSize(Number(e.target.value) || 20)}
+            onChange={(e) => setPageSize(Number(e.target.value) || 50)}
             disabled={loading}
           >
             <option value={6}>6</option>
@@ -249,7 +314,7 @@ const ClientList: React.FC = () => {
                         <br />
                         <span className={styles.metaLabel}>Itinerancia: {r.Itinerancia}</span>
                       </div>
-                      <button className={styles.btnLink} onClick={() => openDetails(r)} disabled={loading || occLoading}> {/*Boton detalles*/}
+                      <button className={styles.btnLink} onClick={() => openDetails(r)} disabled={loading || occLoading}>
                         Detalles
                       </button>
                       <div className={styles.badgeGroup}>
@@ -257,7 +322,6 @@ const ClientList: React.FC = () => {
                         {pmBadge}
                       </div>
                     </div>
-
                   </li>
                 );
               })}
@@ -276,8 +340,15 @@ const ClientList: React.FC = () => {
         </>
       )}
 
-      {/*Modal de creación de celda */}
-      <Modal open={createOpen} title="Añadir celda" onClose={closeModal} onConfirm={create} confirmText={createSaving ? 'Creando…' : 'Crear'} cancelText="Cancelar">
+      {/* Modal de creación de celda */}
+      <Modal
+        open={createOpen}
+        title="Añadir celda"
+        onClose={closeModal}
+        onConfirm={create}
+        confirmText={createSaving ? 'Creando…' : 'Crear'}
+        cancelText="Cancelar"
+      >
         <div style={{ display: 'grid', gap: 12, fontSize: 14 }}>
           {createError && (
             <div style={{ color: 'crimson', fontSize: 13 }}>{createError}</div>
@@ -317,11 +388,15 @@ const ClientList: React.FC = () => {
             </select>
           </label>
 
-          
           <label style={{ display: 'grid', gap: 6 }}>
-            <span><strong>Estado</strong></span>
-            <select className={styles.pageSizeSelect} value={createForm.Itinerancia} 
-              onChange={(e) => setCreateForm(f => ({ ...f, Itinerancia: e.target.value as 'Empleado Fijo' | 'Empleado Itinerante' | 'Directivo'}))}
+            <span><strong>Itinerancia</strong></span>
+            <select
+              className={styles.pageSizeSelect}
+              value={createForm.Itinerancia}
+              onChange={(e) => setCreateForm(f => ({
+                ...f,
+                Itinerancia: e.target.value as 'Empleado Fijo' | 'Empleado Itinerante' | 'Directivo'
+              }))}
             >
               <option value="Empleado Fijo">Empleado Fijo</option>
               <option value="Empleado Itinerante">Empleado Itinerante</option>
@@ -337,16 +412,14 @@ const ClientList: React.FC = () => {
         </div>
       </Modal>
 
-
-
-      {/* SlotDetailsModal */}
+      {/* Detalles */}
       <SlotDetailsModal
         open={open}
         slot={selected}
         onClose={closeDetails}
         onChanged={reloadAll}
         workers={workers}
-        workersLoading = {workersLoading}
+        workersLoading={workersLoading}
       />
     </section>
   );

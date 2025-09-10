@@ -336,7 +336,7 @@ export default function SlotDetailsModal({
           SpotId: { Id: Number(slot.Id) },
           Date: rvDate,
           Turn: rvTurn,
-          Status: 'Pendiente',
+          Status: 'Activa',
           NombreUsuario: rvName || rvMail,
           Title: rvMail || '',
           VehicleType: slot.TipoCelda,

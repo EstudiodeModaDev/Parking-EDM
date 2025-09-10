@@ -5,6 +5,490 @@
  */
 
 export const dataSourcesInfo = {
+  "approvals": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "",
+    "dataSourceType": "Connector",
+    "apis": {
+      "GetApprovalTypes": {
+        "path": "/{connectionId}/types",
+        "method": "GET",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "object",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "GetApprovalTypeMetadataV2": {
+        "path": "/{connectionId}/types/{approvalType}/metadata/{metadataType}",
+        "method": "GET",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "metadataType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "GetSubscriptionMetadata": {
+        "path": "/{connectionId}/metadata/{metadataType}",
+        "method": "GET",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "metadataType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "StartAndWaitForAnApproval": {
+        "path": "/{connectionId}/types/{approvalType}/subscriptions",
+        "method": "POST",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "WebhookApprovalCreationInput",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "201": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "StartAndWaitForATextSuggestionApproval": {
+        "path": "/{connectionId}/types/textSuggestion/subscriptions",
+        "method": "POST",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "WebhookTextSuggestionApprovalCreationInput",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "201": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "CreateAnApproval": {
+        "path": "/{connectionId}/types/{approvalType}",
+        "method": "POST",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "ApprovalCreationInput",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "201": {
+            "type": "object",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "WaitForAnApproval": {
+        "path": "/{connectionId}/approvals/{approvalName}/subscriptions",
+        "method": "POST",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalName",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "ApprovalSubscriptionInput",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "201": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "UnsubscribeStartAnApproval": {
+        "path": "/{connectionId}/types/{approvalType}/subscriptions/{subscriptionid}",
+        "method": "DELETE",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "subscriptionid",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "UnsubscribeWaitForAnApproval": {
+        "path": "/{connectionId}/approvals/{approvalName}/subscriptions/{subscriptionid}",
+        "method": "DELETE",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalName",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "subscriptionid",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "GetApprovalTypeMetadata": {
+        "path": "/{connectionId}/types/{approvalType}/$metadata.json/{metadataType}",
+        "method": "GET",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "metadataType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "approvalSubscribeV2": {
+        "path": "/{connectionId}/types/{approvalType}/$subscriptions",
+        "method": "POST",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "ApprovalCreationInput",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "201": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "approvalUnsubscribeV2": {
+        "path": "/{connectionId}/types/{approvalType}/$subscriptions/{subscriptionid}",
+        "method": "DELETE",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "approvalType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "subscriptionid",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "approvalSubscribe": {
+        "path": "/{connectionId}/basic/$subscriptions",
+        "method": "POST",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "ApprovalCreationInput",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "201": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      },
+      "approvalUnsubscribe": {
+        "path": "/{connectionId}/basic/$subscriptions/{subscriptionid}",
+        "method": "DELETE",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          },
+          {
+            "name": "subscriptionid",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": null
+          }
+        ],
+        "responseInfo": {
+          "200": {
+            "type": "void",
+            "format": null
+          },
+          "default": {
+            "type": "void",
+            "format": null
+          }
+        }
+      }
+    }
+  },
   "office365users": {
     "tableId": "",
     "version": "",

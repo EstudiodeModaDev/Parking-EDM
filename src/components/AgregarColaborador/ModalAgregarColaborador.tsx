@@ -3,6 +3,7 @@ import styles from './modalAgregarColaborador.module.css';
 import type { NewCollaborator } from '../../adapters/colaboradores';
 import type { SlotUI } from '../../adapters/cells';
 import type { Worker } from '../../adapters/shared';
+import { nameProve } from '../../Services/NameService';
 
 // Si ya tienes este tipo en otra parte, usa ese y borra esta definición.
 export type VehicleType = 'Carro' | 'Moto';
@@ -64,16 +65,31 @@ const ModalAgregarColaborador: React.FC<Props> = ({
     );
   }, [workers, colabTerm]);
 
-  const onSelectWorker = (id: string) => {
+  const onSelectWorker = async (id: string) => {
     setSelectedWorkerId(id);
     const w = workers.find(x => String(x.id) === String(id));
-    if (w) {
-      setForm(f => ({
-        ...f,
-        nombre: w.displayName || '',
-        correo: w.mail || '',
-      }));
+
+    if (!w) {
+      setForm(f => ({ ...f, nombre: "", correo: "" }));
+      return;
     }
+
+    // valida asíncrono
+    let nombre = w.displayName || "";
+    try {
+      const ok = await nameProve(nombre);
+      if (!ok) nombre = "";
+    } catch (e) {
+      console.error("nameProve error:", e);
+      // decide qué hacer en fallo: aquí lo dejamos en vacío
+      nombre = "";
+    }
+
+    setForm(f => ({
+      ...f,
+      nombre,
+      correo: w.mail || "",
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {

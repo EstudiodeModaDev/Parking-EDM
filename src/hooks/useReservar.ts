@@ -2,13 +2,12 @@ import * as React from 'react';
 import { SettingsService } from '../Services/SettingsService';
 import { ReservationsService } from '../Services/ReservationsService';
 import { ParkingSlotsService } from '../Services/ParkingSlotsService';
-import { MicrosoftTeamsService } from '../Services/MicrosoftTeamsService';
 import { addDays } from '../utils/date';
 
 import type { IGetAllOptions } from '../Models/CommonModels';
 import type { ReserveArgs, ReserveResult } from '../adapters/resevar.adapter';
 import type { TurnType } from '../adapters/shared';
-import type { DynamicPostMessageRequest } from '../Models/MicrosoftTeamsModel';
+
 
 export type UseReservarReturn = {
   maxDate: Date | null;
@@ -24,11 +23,6 @@ type UseReservarOptions = {
 };
 
 const MOTO_CAPACITY = 4 as const;
-
-const nameFromEmail = (mail?: string) =>
-  (mail?.split('@')[0] ?? 'Usuario')
-    .replace(/[._-]/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase());
 
 export function useReservar(userMail: string, userName: string, opts?: UseReservarOptions): UseReservarReturn {
   const [maxDate, setMaxDate] = React.useState<Date | null>(null);
@@ -54,23 +48,6 @@ export function useReservar(userMail: string, userName: string, opts?: UseReserv
     })();
   }, []);
 
-  // Notificación por Teams
-  const notifyReservation = React.useCallback(
-    async (slot: string, dateReserve: string, turnLabel: string, username: string, userEmail: string, vehicleType: string) => {
-      const body: DynamicPostMessageRequest = {
-        recipient: userEmail,
-        messageBody: 
-            `Reserva confirmada,
-            Hola ${username} tu reserva ha sido creada.
-            Fecha: ${dateReserve}. 
-            Celda: ${slot}.
-            Vehículo: ${vehicleType}.
-            Horario: ${turnLabel}.`,
-      };
-      return MicrosoftTeamsService.PostMessageToConversation(body, 'Flow Bot', 'Chat with Flow bot');
-    },
-    []
-  );
 
 
   const countReservations = React.useCallback(async (
@@ -91,9 +68,10 @@ export function useReservar(userMail: string, userName: string, opts?: UseReserv
   }, []);
 
   const reservar = React.useCallback(async ({ vehicle, turn, dateISO }: ReserveArgs): Promise<ReserveResult> => {
+
     // 1) Traer celdas activas por tipo
     const slotsRes = await ParkingSlotsService.getAll({
-      filter: `(Activa eq 'Activa' or Activa eq true) and TipoCelda eq '${vehicle}'`,
+      filter: `(Activa eq 'Activa' or Activa eq true) and TipoCelda eq '${vehicle} and Itinerancia eq 'Empleado Itinerante'`,
     } as any);
 
     const slots = (slotsRes as any)?.data ?? (slotsRes as any)?.value ?? [];
@@ -121,7 +99,7 @@ export function useReservar(userMail: string, userName: string, opts?: UseReserv
       }
       if (!available) continue;
 
-      // 4) Crear la(s) reserva(s)
+      // 4) Crear la reserva
       const turnsToCreate = (turn === 'Dia' ? (['Manana', 'Tarde'] as const) : [turn]) as readonly Exclude<TurnType, 'Dia'>[];
 
       try {
@@ -132,7 +110,7 @@ export function useReservar(userMail: string, userName: string, opts?: UseReserv
             Title: userMail,
             Date: dateISO,
             Turn: t,
-            SpotId: { Id: Number(slotId) }, // Lookup
+            SpotId: { Id: Number(slotId) }, 
             VehicleType: vehicle,
             Status: 'Activa',
             NombreUsuario: userName
@@ -143,26 +121,11 @@ export function useReservar(userMail: string, userName: string, opts?: UseReserv
           lastCreated = created;
         }
 
-        // Refrescar listas en el consumidor si corresponde
+        // Refrescar listas en el consumidor
         await opts?.onAfterReserve?.();
 
         // Datos para mensaje / retorno
         const code = slot.Title ?? slot.Code ?? slot.Name ?? slotId;
-        const turnLabel =
-          turn === 'Dia'
-            ? 'Día completo'
-            : turnsToCreate.length === 1
-              ? String(turnsToCreate[0])
-              : 'Mañana y Tarde';
-
-        // Notificar por Teams
-        const username = nameFromEmail(userMail);
-        try {
-          await notifyReservation(String(code), dateISO, turnLabel, username, userMail, vehicle);
-        } catch (e) {
-          // No cortar el flujo por un fallo de notificación
-          console.warn('[useReservar] Teams notification failed:', e);
-        }
 
         const successMsg =
           turn === 'Dia'
@@ -179,7 +142,7 @@ export function useReservar(userMail: string, userName: string, opts?: UseReserv
     // 5) Si ningún slot tuvo cupo
     const turnoTexto = turn === 'Dia' ? 'día completo' : String(turn).toLowerCase();
     return { ok: false, message: `No hay parqueaderos disponibles para ${vehicle} el ${dateISO} en ${turnoTexto}.` };
-  }, [countReservations, userMail, opts, notifyReservation]);
+  }, [countReservations, userMail, opts]);
 
   return {
     minDate,
